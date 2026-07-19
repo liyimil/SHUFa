@@ -1,0 +1,42 @@
+[project]
+name = "calligraphy-ai-service"
+version = "0.1.0"
+description = "AI inference boundary for the calligraphy learning platform"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "numpy>=2.2,<3",
+  "opencv-python-headless>=4.11,<5",
+  "pillow>=11.1,<13",
+  "pydantic>=2.10,<3",
+  "python-multipart>=0.0.20,<1",
+  "uvicorn[standard]>=0.34,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28,<1",
+  "pytest>=8.3,<9",
+  "ruff>=0.11,<1",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/calligraphy_ai"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+filterwarnings = [
+  "ignore:Using `httpx` with `starlette.testclient` is deprecated:starlette.exceptions.StarletteDeprecationWarning",
+]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "书法学习",
+    "slug": "calligraphy-learning",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "允许使用相机拍摄你的书法练习作品。",
+          "microphonePermission": false,
+          "photosPermission": "允许从相册选择你的书法练习作品。"
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.calligraphy.learning"
+    },
+    "android": {
+      "package": "com.calligraphy.learning",
+      "adaptiveIcon": {
+        "backgroundColor": "#F3EBDD"
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+.next
+.turbo
+.venv
+.tmp-*-deploy
+build
+coverage
+dist
+node_modules
+pnpm-lock.yaml
+packages/api-contract/openapi.json
+packages/api-contract/src/generated.ts

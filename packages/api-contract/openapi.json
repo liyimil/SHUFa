@@ -1,0 +1,3633 @@
+{
+  "components": {
+    "schemas": {
+      "ArtworkAnalysis": {
+        "properties": {
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/QualityFinding"
+            },
+            "type": "array"
+          },
+          "metrics": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/QualityMetrics"
+              }
+            ],
+            "nullable": true
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "PROCESSING",
+              "PASSED",
+              "NEEDS_RETAKE",
+              "FAILED"
+            ],
+            "type": "string"
+          },
+          "thresholdVersion": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "findings",
+          "metrics",
+          "status",
+          "thresholdVersion"
+        ],
+        "type": "object"
+      },
+      "ArtworkAnalysisView": {
+        "properties": {
+          "analysis": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ArtworkAnalysis"
+              }
+            ],
+            "nullable": true
+          },
+          "artworkId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "artworkStatus": {
+            "enum": [
+              "PENDING_UPLOAD",
+              "UPLOADED",
+              "PROCESSING",
+              "READY",
+              "FAILED",
+              "DELETION_PENDING",
+              "DELETED"
+            ],
+            "type": "string"
+          },
+          "confirmedCharacter": {
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "analysis",
+          "artworkId",
+          "artworkStatus",
+          "confirmedCharacter",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "ArtworkDeletionView": {
+        "properties": {
+          "artworkId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "deletionId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "DELETION_PENDING",
+              "DELETED",
+              "FAILED"
+            ],
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artworkId",
+          "deletionId",
+          "status",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "CalligrapherSummary": {
+        "properties": {
+          "dynasty": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "dynasty",
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "CancelUploadResult": {
+        "properties": {
+          "artworkId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "DELETED"
+            ],
+            "type": "string"
+          },
+          "uploadId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artworkId",
+          "status",
+          "uploadId"
+        ],
+        "type": "object"
+      },
+      "CatalogFacets": {
+        "properties": {
+          "calligraphers": {
+            "items": {
+              "$ref": "#/components/schemas/CalligrapherSummary"
+            },
+            "type": "array"
+          },
+          "scriptStyles": {
+            "items": {
+              "enum": [
+                "REGULAR"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "works": {
+            "items": {
+              "$ref": "#/components/schemas/WorkSummary"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "calligraphers",
+          "scriptStyles",
+          "works"
+        ],
+        "type": "object"
+      },
+      "CatalogFilters": {
+        "properties": {
+          "calligrapherId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "scriptStyle": {
+            "enum": [
+              "REGULAR"
+            ],
+            "type": "string"
+          },
+          "workId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CatalogGlyphResult": {
+        "properties": {
+          "canonicalCharacter": {
+            "nullable": true,
+            "type": "string"
+          },
+          "facets": {
+            "$ref": "#/components/schemas/CatalogFacets"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/CatalogFilters"
+          },
+          "glyphs": {
+            "items": {
+              "$ref": "#/components/schemas/PublishedGlyph"
+            },
+            "type": "array"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "canonicalCharacter",
+          "facets",
+          "filters",
+          "glyphs",
+          "query"
+        ],
+        "type": "object"
+      },
+      "CharacterConfirmationRequest": {
+        "properties": {
+          "character": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "character"
+        ],
+        "type": "object"
+      },
+      "CharacterConfirmationResult": {
+        "properties": {
+          "character": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "character"
+        ],
+        "type": "object"
+      },
+      "CompleteUploadResult": {
+        "properties": {
+          "analysisId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "artworkId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PROCESSING"
+            ],
+            "type": "string"
+          },
+          "uploadedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "analysisId",
+          "artworkId",
+          "status",
+          "uploadedAt"
+        ],
+        "type": "object"
+      },
+      "CreateFavoriteGroupRequest": {
+        "properties": {
+          "name": {
+            "maxLength": 40,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "CreatePracticeRequest": {
+        "properties": {
+          "artworkId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "glyphId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artworkId",
+          "glyphId"
+        ],
+        "type": "object"
+      },
+      "CreateUploadRequest": {
+        "properties": {
+          "clientRequestId": {
+            "maxLength": 100,
+            "minLength": 16,
+            "type": "string"
+          },
+          "height": {
+            "maximum": 12000,
+            "minimum": 256,
+            "type": "integer"
+          },
+          "mimeType": {
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "type": "string"
+          },
+          "sizeBytes": {
+            "maximum": 10485760,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "width": {
+            "maximum": 12000,
+            "minimum": 256,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "clientRequestId",
+          "height",
+          "mimeType",
+          "sizeBytes",
+          "width"
+        ],
+        "type": "object"
+      },
+      "CreateUploadResult": {
+        "properties": {
+          "artworkId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "requiredHeaders": {
+            "properties": {
+              "content-type": {
+                "enum": [
+                  "image/jpeg",
+                  "image/png",
+                  "image/webp"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "content-type"
+            ],
+            "type": "object"
+          },
+          "uploadId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "uploadUrl": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artworkId",
+          "expiresAt",
+          "requiredHeaders",
+          "uploadId",
+          "uploadUrl"
+        ],
+        "type": "object"
+      },
+      "DeleteFavoriteGroupResult": {
+        "properties": {
+          "deleted": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "deleted",
+          "id"
+        ],
+        "type": "object"
+      },
+      "FavoriteGlyphItem": {
+        "properties": {
+          "character": {
+            "type": "string"
+          },
+          "favoriteId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "glyph": {
+            "$ref": "#/components/schemas/PublishedGlyph"
+          },
+          "groupId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "sortOrder": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "character",
+          "favoriteId",
+          "glyph",
+          "groupId",
+          "sortOrder"
+        ],
+        "type": "object"
+      },
+      "FavoriteGroup": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FavoriteGlyphItem"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "items",
+          "name",
+          "sortOrder"
+        ],
+        "type": "object"
+      },
+      "FavoriteGroupResult": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sortOrder"
+        ],
+        "type": "object"
+      },
+      "FavoriteLibrary": {
+        "properties": {
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/FavoriteGroup"
+            },
+            "type": "array"
+          },
+          "ungrouped": {
+            "items": {
+              "$ref": "#/components/schemas/FavoriteGlyphItem"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "groups",
+          "ungrouped"
+        ],
+        "type": "object"
+      },
+      "FavoritePlacementRequest": {
+        "properties": {
+          "groupId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "FavoriteStateResult": {
+        "properties": {
+          "favorite": {
+            "type": "boolean"
+          },
+          "glyphId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "favorite",
+          "glyphId"
+        ],
+        "type": "object"
+      },
+      "FeedbackCreatedResult": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "OPEN",
+              "IN_PROGRESS",
+              "RESOLVED",
+              "DISMISSED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ],
+        "type": "object"
+      },
+      "FeedbackSubmitRequest": {
+        "properties": {
+          "accurate": {
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "STRUCTURE_ADVICE",
+              "RECOGNITION_ERROR",
+              "QUALITY_RESULT",
+              "CONTENT_ERROR",
+              "PRODUCT"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "referenceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "referenceType": {
+            "enum": [
+              "Artwork",
+              "Glyph",
+              "PracticeSession"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "type": "object"
+      },
+      "GlyphDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PublishedGlyph"
+          },
+          {
+            "properties": {
+              "character": {
+                "type": "string"
+              },
+              "publishedAt": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "sourceContext": {
+                "$ref": "#/components/schemas/SourceContext"
+              }
+            },
+            "required": [
+              "character",
+              "publishedAt",
+              "sourceContext"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "GlyphImage": {
+        "properties": {
+          "height": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "GLYPH_CROP",
+              "THUMBNAIL"
+            ],
+            "type": "string"
+          },
+          "url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "width": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "height",
+          "id",
+          "kind",
+          "url",
+          "width"
+        ],
+        "type": "object"
+      },
+      "HealthResult": {
+        "properties": {
+          "service": {
+            "enum": [
+              "api"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok"
+            ],
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "service",
+          "status",
+          "timestamp"
+        ],
+        "type": "object"
+      },
+      "IdentitySession": {
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresInSeconds": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "refreshExpiresInSeconds": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "enum": [
+              "Bearer"
+            ],
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/SessionUser"
+          }
+        },
+        "required": [
+          "accessToken",
+          "expiresInSeconds",
+          "refreshExpiresInSeconds",
+          "refreshToken",
+          "tokenType",
+          "user"
+        ],
+        "type": "object"
+      },
+      "PracticeAdvice": {
+        "additionalProperties": true,
+        "properties": {
+          "advanced_analysis_status": {
+            "enum": [
+              "UNAVAILABLE_NO_VALIDATED_CHARACTER_RULE"
+            ],
+            "type": "string"
+          },
+          "master": {
+            "$ref": "#/components/schemas/StructureMetrics"
+          },
+          "measurement_version": {
+            "enum": [
+              "structure-measurement-v2"
+            ],
+            "type": "string"
+          },
+          "model_version": {
+            "enum": [
+              "no-ml-geometry-v1"
+            ],
+            "type": "string"
+          },
+          "normalization_version": {
+            "enum": [
+              "glyph-normalization-v1"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "OK",
+              "LOW_CONFIDENCE"
+            ],
+            "type": "string"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/StructureSuggestion"
+            },
+            "maxItems": 3,
+            "type": "array"
+          },
+          "threshold_version": {
+            "enum": [
+              "structure-v1"
+            ],
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/StructureMetrics"
+          }
+        },
+        "required": [
+          "advanced_analysis_status",
+          "master",
+          "measurement_version",
+          "model_version",
+          "normalization_version",
+          "status",
+          "suggestions",
+          "threshold_version",
+          "user"
+        ],
+        "type": "object"
+      },
+      "PracticeAnalysisState": {
+        "properties": {
+          "failureCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "READY",
+              "FAILED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "failureCode",
+          "status"
+        ],
+        "type": "object"
+      },
+      "PracticeAttempt": {
+        "properties": {
+          "advice": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PracticeAdvice"
+              }
+            ],
+            "nullable": true
+          },
+          "analysis": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PracticeAnalysisState"
+              }
+            ],
+            "nullable": true
+          },
+          "artworkId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "imageUrl": {
+            "format": "uri",
+            "type": "string"
+          },
+          "sequence": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "advice",
+          "analysis",
+          "artworkId",
+          "createdAt",
+          "imageUrl",
+          "sequence"
+        ],
+        "type": "object"
+      },
+      "PracticeAttemptRequest": {
+        "properties": {
+          "artworkId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artworkId"
+        ],
+        "type": "object"
+      },
+      "PracticeMaster": {
+        "properties": {
+          "calligrapherName": {
+            "type": "string"
+          },
+          "glyphId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "imageUrl": {
+            "format": "uri",
+            "nullable": true,
+            "type": "string"
+          },
+          "workTitle": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "calligrapherName",
+          "glyphId",
+          "imageUrl",
+          "workTitle"
+        ],
+        "type": "object"
+      },
+      "PracticeView": {
+        "properties": {
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/PracticeAttempt"
+            },
+            "type": "array"
+          },
+          "character": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "master": {
+            "$ref": "#/components/schemas/PracticeMaster"
+          }
+        },
+        "required": [
+          "attempts",
+          "character",
+          "createdAt",
+          "id",
+          "master"
+        ],
+        "type": "object"
+      },
+      "PrivacyPreferences": {
+        "properties": {
+          "allowArtworkStorage": {
+            "type": "boolean"
+          },
+          "allowModelTraining": {
+            "type": "boolean"
+          },
+          "allowPublicSharing": {
+            "type": "boolean"
+          },
+          "policyVersion": {
+            "type": "string"
+          },
+          "sharingUpdatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "storageUpdatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "trainingUpdatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "allowArtworkStorage",
+          "allowModelTraining",
+          "allowPublicSharing",
+          "policyVersion",
+          "sharingUpdatedAt",
+          "storageUpdatedAt",
+          "trainingUpdatedAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "PrivacyPreferencesUpdate": {
+        "minProperties": 1,
+        "properties": {
+          "allowArtworkStorage": {
+            "type": "boolean"
+          },
+          "allowModelTraining": {
+            "type": "boolean"
+          },
+          "allowPublicSharing": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "ProductEventRequest": {
+        "properties": {
+          "eventId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "enum": [
+              "ARTWORK_UPLOAD_COMPLETED",
+              "CHARACTER_CONFIRMED",
+              "CATALOG_RESULTS_VIEWED",
+              "GLYPH_SELECTED",
+              "PRACTICE_CREATED",
+              "ADVICE_VIEWED",
+              "SECOND_ATTEMPT_STARTED",
+              "PRACTICE_COMPLETED"
+            ],
+            "type": "string"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "practiceSessionId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "eventId",
+          "name",
+          "occurredAt"
+        ],
+        "type": "object"
+      },
+      "ProductEventResult": {
+        "properties": {
+          "eventId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "RECORDED",
+              "DUPLICATE"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "eventId",
+          "status"
+        ],
+        "type": "object"
+      },
+      "PublishedEdition": {
+        "properties": {
+          "holdingInstitution": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sourceUrl": {
+            "format": "uri",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "holdingInstitution",
+          "id",
+          "name",
+          "sourceUrl"
+        ],
+        "type": "object"
+      },
+      "PublishedGlyph": {
+        "properties": {
+          "authenticityGrade": {
+            "enum": [
+              "A_ORIGINAL",
+              "B_RUBBING_OR_AUTHORIZED_EDITION",
+              "C_MODERN_COPY"
+            ],
+            "type": "string"
+          },
+          "beginnerWeight": {
+            "type": "number"
+          },
+          "calligrapher": {
+            "$ref": "#/components/schemas/CalligrapherSummary"
+          },
+          "edition": {
+            "$ref": "#/components/schemas/PublishedEdition"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "image": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GlyphImage"
+              }
+            ],
+            "nullable": true
+          },
+          "imageQuality": {
+            "type": "number"
+          },
+          "rights": {
+            "$ref": "#/components/schemas/PublishedRights"
+          },
+          "scriptStyle": {
+            "enum": [
+              "REGULAR"
+            ],
+            "type": "string"
+          },
+          "work": {
+            "$ref": "#/components/schemas/PublishedWork"
+          }
+        },
+        "required": [
+          "authenticityGrade",
+          "beginnerWeight",
+          "calligrapher",
+          "edition",
+          "id",
+          "image",
+          "imageQuality",
+          "rights",
+          "scriptStyle",
+          "work"
+        ],
+        "type": "object"
+      },
+      "PublishedRights": {
+        "properties": {
+          "attributionText": {
+            "nullable": true,
+            "type": "string"
+          },
+          "licenseName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceName": {
+            "type": "string"
+          },
+          "sourceUrl": {
+            "format": "uri",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "attributionText",
+          "licenseName",
+          "sourceName",
+          "sourceUrl"
+        ],
+        "type": "object"
+      },
+      "PublishedWork": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "type": "object"
+      },
+      "QualityFinding": {
+        "properties": {
+          "code": {
+            "enum": [
+              "BLURRY",
+              "INK_TOUCHES_BORDER",
+              "LOW_CONTRAST",
+              "RESOLUTION_TOO_LOW",
+              "TOO_BRIGHT",
+              "TOO_DARK"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "warning",
+              "error"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "severity"
+        ],
+        "type": "object"
+      },
+      "QualityMetrics": {
+        "properties": {
+          "blur_score": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "brightness": {
+            "maximum": 255,
+            "minimum": 0,
+            "type": "number"
+          },
+          "contrast": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "edge_ink_ratio": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "height": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "ink_coverage": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "width": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "blur_score",
+          "brightness",
+          "contrast",
+          "edge_ink_ratio",
+          "height",
+          "ink_coverage",
+          "width"
+        ],
+        "type": "object"
+      },
+      "RefreshTokenRequest": {
+        "properties": {
+          "refreshToken": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ],
+        "type": "object"
+      },
+      "ReorderRequest": {
+        "properties": {
+          "direction": {
+            "enum": [
+              "UP",
+              "DOWN"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "direction"
+        ],
+        "type": "object"
+      },
+      "ReorderResult": {
+        "properties": {
+          "glyphId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "groupId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reordered": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reordered"
+        ],
+        "type": "object"
+      },
+      "RevokeSessionResult": {
+        "properties": {
+          "revoked": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "revoked"
+        ],
+        "type": "object"
+      },
+      "RevokeShareResult": {
+        "properties": {
+          "revoked": {
+            "type": "boolean"
+          },
+          "shareId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revoked",
+          "shareId"
+        ],
+        "type": "object"
+      },
+      "SessionUser": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "anonymous",
+              "registered"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind"
+        ],
+        "type": "object"
+      },
+      "ShareResult": {
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "url": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expiresAt",
+          "id",
+          "url"
+        ],
+        "type": "object"
+      },
+      "ShareSummary": {
+        "properties": {
+          "attemptCount": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "character": {
+            "type": "string"
+          },
+          "master": {
+            "properties": {
+              "calligrapherName": {
+                "type": "string"
+              },
+              "workTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "calligrapherName",
+              "workTitle"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "attemptCount",
+          "character",
+          "master"
+        ],
+        "type": "object"
+      },
+      "SourceContext": {
+        "properties": {
+          "boundingBox": {
+            "$ref": "#/components/schemas/SourceRectangle"
+          },
+          "pageLabel": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceImage": {
+            "$ref": "#/components/schemas/SourceImageSize"
+          }
+        },
+        "required": [
+          "boundingBox",
+          "pageLabel",
+          "sourceImage"
+        ],
+        "type": "object"
+      },
+      "SourceImageSize": {
+        "properties": {
+          "height": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "width": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "height",
+          "width"
+        ],
+        "type": "object"
+      },
+      "SourceRectangle": {
+        "properties": {
+          "height": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "width": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "x": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "y": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "height",
+          "width",
+          "x",
+          "y"
+        ],
+        "type": "object"
+      },
+      "StructureMetrics": {
+        "properties": {
+          "anomalies": {
+            "items": {
+              "enum": [
+                "NO_FOREGROUND",
+                "TOO_SPARSE",
+                "TOO_DENSE",
+                "TOUCHES_EDGE",
+                "FRAGMENTED_FOREGROUND"
+              ],
+              "type": "string"
+            },
+            "maxItems": 5,
+            "type": "array"
+          },
+          "bbox_height_ratio": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "bbox_left_ratio": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "bbox_top_ratio": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "bbox_width_ratio": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "centroid_x": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "centroid_y": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "confidence": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "foreground_ratio": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "ink_aspect_ratio": {
+            "exclusiveMinimum": true,
+            "minimum": 0,
+            "type": "number"
+          },
+          "normalization": {
+            "properties": {
+              "canvas_height": {
+                "enum": [
+                  512
+                ],
+                "type": "integer"
+              },
+              "canvas_width": {
+                "enum": [
+                  512
+                ],
+                "type": "integer"
+              },
+              "offset_x": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "offset_y": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "scale": {
+                "exclusiveMinimum": true,
+                "minimum": 0,
+                "type": "number"
+              },
+              "source_height": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "source_width": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "version": {
+                "enum": [
+                  "glyph-normalization-v1"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "canvas_height",
+              "canvas_width",
+              "offset_x",
+              "offset_y",
+              "scale",
+              "source_height",
+              "source_width",
+              "version"
+            ],
+            "type": "object"
+          },
+          "spatial_distribution": {
+            "properties": {
+              "bottom_left": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "bottom_right": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "top_left": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "top_right": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              }
+            },
+            "required": [
+              "bottom_left",
+              "bottom_right",
+              "top_left",
+              "top_right"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "anomalies",
+          "bbox_height_ratio",
+          "bbox_left_ratio",
+          "bbox_top_ratio",
+          "bbox_width_ratio",
+          "centroid_x",
+          "centroid_y",
+          "confidence",
+          "foreground_ratio",
+          "ink_aspect_ratio",
+          "normalization",
+          "spatial_distribution"
+        ],
+        "type": "object"
+      },
+      "StructureSuggestion": {
+        "properties": {
+          "action": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "code": {
+            "enum": [
+              "CENTER_X",
+              "CENTER_Y",
+              "PROPORTION"
+            ],
+            "type": "string"
+          },
+          "evidence": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "phenomenon": {
+            "maxLength": 500,
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "code",
+          "evidence",
+          "phenomenon"
+        ],
+        "type": "object"
+      },
+      "UpdateFavoriteGroupRequest": {
+        "properties": {
+          "name": {
+            "maxLength": 40,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "UpdateFavoriteGroupResult": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "UserFeedbackTicket": {
+        "properties": {
+          "accurate": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "STRUCTURE_ADVICE",
+              "RECOGNITION_ERROR",
+              "QUALITY_RESULT",
+              "CONTENT_ERROR",
+              "PRODUCT"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "nullable": true,
+            "type": "string"
+          },
+          "referenceId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "referenceType": {
+            "nullable": true,
+            "type": "string"
+          },
+          "resolutionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "resolvedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "OPEN",
+              "IN_PROGRESS",
+              "RESOLVED",
+              "DISMISSED"
+            ],
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accurate",
+          "createdAt",
+          "id",
+          "kind",
+          "message",
+          "referenceId",
+          "referenceType",
+          "resolutionNote",
+          "resolvedAt",
+          "status",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "WorkSummary": {
+        "properties": {
+          "calligrapherId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "calligrapherId",
+          "id",
+          "title"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "contact": {},
+    "description": "移动端、Web 与管理后台共享的业务 API",
+    "title": "AI 辅助书法学习 API",
+    "version": "1.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/admin/advice-reviews": {
+      "get": {
+        "operationId": "AdminInsightsController_listAdviceSamples",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "抽取有建议快照的练习样本供教师复核",
+        "tags": [
+          "admin-insights"
+        ]
+      }
+    },
+    "/api/v1/admin/advice-reviews/{attemptId}": {
+      "patch": {
+        "operationId": "AdminInsightsController_reviewAdvice",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "记录教师对结构建议的抽检结论与意见",
+        "tags": [
+          "admin-insights"
+        ]
+      }
+    },
+    "/api/v1/admin/analytics/funnel": {
+      "get": {
+        "operationId": "AdminInsightsController_funnel",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "按时间窗统计完整练习闭环关键漏斗",
+        "tags": [
+          "admin-insights"
+        ]
+      }
+    },
+    "/api/v1/admin/content/calligraphers": {
+      "get": {
+        "operationId": "ContentAdminController_listCalligraphers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "查看书家主数据",
+        "tags": [
+          "admin-content"
+        ]
+      },
+      "post": {
+        "operationId": "ContentAdminController_createCalligrapher",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "创建书家主数据并记录审计",
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/calligraphers/{calligrapherId}": {
+      "patch": {
+        "operationId": "ContentAdminController_updateCalligrapher",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/editions": {
+      "get": {
+        "operationId": "ContentAdminController_listEditions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      },
+      "post": {
+        "operationId": "ContentAdminController_createEdition",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "创建作品版本并记录审计",
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/editions/{editionId}": {
+      "patch": {
+        "operationId": "ContentAdminController_updateEdition",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/glyphs": {
+      "get": {
+        "operationId": "ContentAdminController_listGlyphs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      },
+      "post": {
+        "operationId": "ContentAdminController_createGlyph",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "登记单字框并提交公开裁切任务",
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/glyphs/{glyphId}": {
+      "patch": {
+        "operationId": "ContentAdminController_updateGlyph",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "纠正未发布单字并使既有审核失效",
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/glyphs/{glyphId}/publish": {
+      "post": {
+        "operationId": "ContentAdminController_publishGlyph",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "在来源、权利、图片和审核均合格后发布单字",
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/glyphs/{glyphId}/reviews": {
+      "post": {
+        "operationId": "ContentAdminController_reviewGlyph",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "以独立审核角色复核单字",
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/glyphs/{glyphId}/unpublish": {
+      "post": {
+        "operationId": "ContentAdminController_unpublishGlyph",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "立即下架已发布单字并记录原因",
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/history": {
+      "get": {
+        "operationId": "ContentAdminController_listContentHistory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/history/{auditId}/restore": {
+      "post": {
+        "operationId": "ContentAdminController_restoreContentHistory",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/import-batches": {
+      "get": {
+        "operationId": "ContentAdminController_listContentImportBatches",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/import-batches/{batchId}/commit": {
+      "post": {
+        "operationId": "ContentAdminController_commitContentImport",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/import-batches/preview": {
+      "post": {
+        "operationId": "ContentAdminController_previewContentImport",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/import-template": {
+      "get": {
+        "operationId": "ContentAdminController_contentImportTemplate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/rights": {
+      "get": {
+        "operationId": "ContentAdminController_listRights",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      },
+      "post": {
+        "operationId": "ContentAdminController_createRights",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "创建权利记录并记录审计",
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/rights/{rightsId}": {
+      "patch": {
+        "operationId": "ContentAdminController_updateRights",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/segmentation-candidates/{candidateId}/accept": {
+      "post": {
+        "operationId": "ContentAdminController_acceptSegmentationCandidate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/segmentation-candidates/{candidateId}/reject": {
+      "post": {
+        "operationId": "ContentAdminController_rejectSegmentationCandidate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/segmentation-jobs": {
+      "get": {
+        "operationId": "ContentAdminController_listSegmentationJobs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/source-assets": {
+      "get": {
+        "operationId": "ContentAdminController_listSourceAssets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/source-assets/{sourceAssetId}/segmentation-jobs": {
+      "post": {
+        "operationId": "ContentAdminController_createSegmentationJob",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/source-assets/{sourceAssetId}/view": {
+      "get": {
+        "operationId": "ContentAdminController_createSourceAssetView",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/source-uploads": {
+      "post": {
+        "operationId": "ContentAdminController_createSourceUpload",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "创建带大小、格式和校验值约束的原帖直传",
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/source-uploads/{uploadId}/complete": {
+      "post": {
+        "operationId": "ContentAdminController_completeSourceUpload",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "核验原帖直传并创建不可变来源资产",
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/works": {
+      "get": {
+        "operationId": "ContentAdminController_listWorks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "查看作品主数据",
+        "tags": [
+          "admin-content"
+        ]
+      },
+      "post": {
+        "operationId": "ContentAdminController_createWork",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "创建碑帖作品并记录审计",
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/content/works/{workId}": {
+      "patch": {
+        "operationId": "ContentAdminController_updateWork",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "admin-content"
+        ]
+      }
+    },
+    "/api/v1/admin/feedback": {
+      "get": {
+        "operationId": "AdminFeedbackController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "按类型和状态查看用户反馈工单",
+        "tags": [
+          "admin-feedback"
+        ]
+      }
+    },
+    "/api/v1/admin/feedback/{feedbackId}": {
+      "patch": {
+        "operationId": "AdminFeedbackController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "分派、更新或关闭反馈工单",
+        "tags": [
+          "admin-feedback"
+        ]
+      }
+    },
+    "/api/v1/admin/session": {
+      "post": {
+        "operationId": "AdminSessionController_createSession",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "登录内容管理后台",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/artwork-deletions/{deletionId}": {
+      "get": {
+        "operationId": "PracticeController_getArtworkDeletion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deletionId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtworkDeletionView"
+                }
+              }
+            },
+            "description": "作品物理清理状态。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/artworks/{artworkId}": {
+      "delete": {
+        "operationId": "PracticeController_deleteArtwork",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artworkId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtworkDeletionView"
+                }
+              }
+            },
+            "description": "作品逻辑删除及物理清理状态。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      },
+      "get": {
+        "operationId": "AnalysisController_getArtwork",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artworkId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtworkAnalysisView"
+                }
+              }
+            },
+            "description": "作品质检状态。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询本人作品及图片质检状态",
+        "tags": [
+          "artworks"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/artworks/{artworkId}/character": {
+      "post": {
+        "operationId": "AnalysisController_confirmCharacter",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artworkId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CharacterConfirmationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterConfirmationResult"
+                }
+              }
+            },
+            "description": "汉字已确认。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "确认本人作品中的汉字",
+        "tags": [
+          "artworks"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/characters/{character}/glyphs": {
+      "get": {
+        "operationId": "CatalogController_findGlyphs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "character",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "calligrapherId",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workId",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scriptStyle",
+            "schema": {
+              "enum": [
+                "REGULAR"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogGlyphResult"
+                }
+              }
+            },
+            "description": "已审核的公开范字结果。"
+          }
+        },
+        "summary": "查询一个汉字已发布且授权公开的名家范字",
+        "tags": [
+          "catalog"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/events": {
+      "post": {
+        "operationId": "InsightsController_track",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEventResult"
+                }
+              }
+            },
+            "description": "业务事件已记录。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "幂等记录不含自由文本的核心业务事件",
+        "tags": [
+          "product-events"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/favorite-groups": {
+      "post": {
+        "operationId": "PracticeController_createFavoriteGroup",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFavoriteGroupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteGroupResult"
+                }
+              }
+            },
+            "description": "收藏分组已创建。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/favorite-groups/{groupId}": {
+      "delete": {
+        "operationId": "PracticeController_removeFavoriteGroup",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "groupId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteFavoriteGroupResult"
+                }
+              }
+            },
+            "description": "收藏分组已删除。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      },
+      "patch": {
+        "operationId": "PracticeController_updateFavoriteGroup",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "groupId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFavoriteGroupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateFavoriteGroupResult"
+                }
+              }
+            },
+            "description": "收藏分组已更新。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/favorite-groups/{groupId}/reorder": {
+      "post": {
+        "operationId": "PracticeController_reorderFavoriteGroup",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "groupId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReorderResult"
+                }
+              }
+            },
+            "description": "收藏分组已重新排序。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/favorites": {
+      "get": {
+        "operationId": "PracticeController_listFavorites",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteLibrary"
+                }
+              }
+            },
+            "description": "当前用户的收藏字帖。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/favorites/glyphs/{glyphId}": {
+      "delete": {
+        "operationId": "PracticeController_unfavorite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "glyphId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteStateResult"
+                }
+              }
+            },
+            "description": "范字收藏已取消。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      },
+      "put": {
+        "operationId": "PracticeController_favorite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "glyphId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoritePlacementRequest"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteStateResult"
+                }
+              }
+            },
+            "description": "范字已收藏。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/favorites/glyphs/{glyphId}/reorder": {
+      "post": {
+        "operationId": "PracticeController_reorderFavorite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "glyphId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReorderResult"
+                }
+              }
+            },
+            "description": "收藏范字已重新排序。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/feedback": {
+      "get": {
+        "operationId": "FeedbackController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserFeedbackTicket"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "当前用户的反馈工单。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查看当前用户反馈的处理进度",
+        "tags": [
+          "feedback"
+        ],
+        "x-client-contract": true
+      },
+      "post": {
+        "operationId": "FeedbackController_submit",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackSubmitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackCreatedResult"
+                }
+              }
+            },
+            "description": "反馈工单已创建。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "提交结构提示、质检、内容或产品反馈",
+        "tags": [
+          "feedback"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/glyphs/{glyphId}": {
+      "get": {
+        "operationId": "GlyphController_getDetail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "glyphId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlyphDetail"
+                }
+              }
+            },
+            "description": "公开范字来源详情。"
+          }
+        },
+        "summary": "读取已发布范字的来源上下文，不暴露私有原帖对象",
+        "tags": [
+          "catalog"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "HealthController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResult"
+                }
+              }
+            },
+            "description": "服务健康状态。"
+          }
+        },
+        "tags": [
+          "system"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/identity/anonymous": {
+      "post": {
+        "operationId": "IdentityController_createAnonymousSession",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentitySession"
+                }
+              }
+            },
+            "description": "会话已签发。"
+          }
+        },
+        "summary": "建立匿名学习会话",
+        "tags": [
+          "identity"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/identity/refresh": {
+      "post": {
+        "operationId": "IdentityController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentitySession"
+                }
+              }
+            },
+            "description": "会话已签发。"
+          }
+        },
+        "summary": "一次性轮换 Refresh Token 并签发新访问令牌",
+        "tags": [
+          "identity"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/identity/revoke": {
+      "post": {
+        "operationId": "IdentityController_revoke",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeSessionResult"
+                }
+              }
+            },
+            "description": "撤销请求已处理。"
+          }
+        },
+        "summary": "撤销一个 Refresh Token；结果不暴露令牌是否存在",
+        "tags": [
+          "identity"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/identity/session": {
+      "post": {
+        "operationId": "IdentityController_createRefreshableSession",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentitySession"
+                }
+              }
+            },
+            "description": "会话已签发。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "为仍有效的旧版访问令牌建立可轮换会话",
+        "tags": [
+          "identity"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/practices": {
+      "get": {
+        "operationId": "PracticeController_listPractices",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PracticeView"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "当前用户的练习历史。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      },
+      "post": {
+        "operationId": "PracticeController_createPractice",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePracticeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeView"
+                }
+              }
+            },
+            "description": "练习会话已创建。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "以本人作品和已发布同字范字创建练习记录",
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/practices/{sessionId}": {
+      "get": {
+        "operationId": "PracticeController_getPractice",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sessionId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeView"
+                }
+              }
+            },
+            "description": "练习会话详情。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/practices/{sessionId}/attempts": {
+      "post": {
+        "operationId": "PracticeController_addAttempt",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sessionId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PracticeAttemptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeView"
+                }
+              }
+            },
+            "description": "再次练习已加入会话。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/practices/{sessionId}/shares": {
+      "post": {
+        "operationId": "PracticeController_createShare",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sessionId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareResult"
+                }
+              }
+            },
+            "description": "私密练习分享已创建。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/privacy/preferences": {
+      "get": {
+        "operationId": "PrivacyController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyPreferences"
+                }
+              }
+            },
+            "description": "当前隐私偏好。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "读取当前用户相互独立的存储、公开和训练授权",
+        "tags": [
+          "privacy"
+        ],
+        "x-client-contract": true
+      },
+      "put": {
+        "operationId": "PrivacyController_update",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyPreferencesUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyPreferences"
+                }
+              }
+            },
+            "description": "隐私偏好已更新。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "更新隐私授权并写入不可变授权审计记录",
+        "tags": [
+          "privacy"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/shares/{shareId}": {
+      "delete": {
+        "operationId": "PracticeController_revokeShare",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shareId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeShareResult"
+                }
+              }
+            },
+            "description": "分享已撤销。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/shares/{token}": {
+      "get": {
+        "operationId": "PublicShareController_getShare",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9_-]{40,60}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeView"
+                }
+              }
+            },
+            "description": "公开练习分享。"
+          }
+        },
+        "summary": "查看未撤销且未过期的公开练习分享",
+        "tags": [
+          "shares"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/shares/{token}/summary": {
+      "get": {
+        "operationId": "PublicShareController_getShareSummary",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9_-]{40,60}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareSummary"
+                }
+              }
+            },
+            "description": "不包含用户图片地址的公开分享摘要。"
+          }
+        },
+        "summary": "查看不含用户图片地址的公开练习分享摘要",
+        "tags": [
+          "shares"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/uploads": {
+      "post": {
+        "operationId": "UploadController_createUpload",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUploadResult"
+                }
+              }
+            },
+            "description": "上传会话已创建。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "创建用户作品直传会话",
+        "tags": [
+          "uploads"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/uploads/{uploadId}/cancel": {
+      "post": {
+        "operationId": "UploadController_cancelUpload",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "uploadId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelUploadResult"
+                }
+              }
+            },
+            "description": "上传已取消并清理。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "取消尚未完成的直传并清理私有对象",
+        "tags": [
+          "uploads"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/uploads/{uploadId}/complete": {
+      "post": {
+        "operationId": "UploadController_completeUpload",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "uploadId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteUploadResult"
+                }
+              }
+            },
+            "description": "上传已校验并进入质检。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "确认对象存储上传完成",
+        "tags": [
+          "uploads"
+        ],
+        "x-client-contract": true
+      }
+    }
+  },
+  "servers": [],
+  "tags": []
+}

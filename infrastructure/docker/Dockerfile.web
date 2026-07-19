@@ -1,0 +1,22 @@
+FROM node:24-bookworm-slim AS builder
+WORKDIR /workspace
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
+COPY apps/web/package.json apps/web/package.json
+COPY packages/api-contract/package.json packages/api-contract/package.json
+RUN pnpm install --frozen-lockfile --filter @calligraphy/web...
+COPY apps/web apps/web
+COPY packages/api-contract packages/api-contract
+ARG NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+RUN pnpm --filter @calligraphy/web build
+
+FROM node:24-bookworm-slim AS runtime
+ENV NODE_ENV=production
+ENV PORT=3000
+WORKDIR /app
+COPY --chown=node:node --from=builder /workspace/apps/web/.next/standalone ./
+COPY --chown=node:node --from=builder /workspace/apps/web/.next/static ./apps/web/.next/static
+USER node
+EXPOSE 3000
+CMD ["node", "apps/web/server.js"]

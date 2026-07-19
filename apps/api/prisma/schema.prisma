@@ -1,0 +1,785 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ContentStatus {
+  DRAFT
+  PROCESSING
+  NEEDS_REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ScriptStyle {
+  REGULAR
+}
+
+enum CharacterVariantType {
+  SIMPLIFIED
+  TRADITIONAL
+  HISTORICAL
+  COMPATIBILITY
+}
+
+enum RightsStatus {
+  UNKNOWN
+  INTERNAL_TEST_ONLY
+  CLEARED_PUBLIC
+  RESTRICTED
+  EXPIRED
+}
+
+enum AuthenticityGrade {
+  A_ORIGINAL
+  B_RUBBING_OR_AUTHORIZED_EDITION
+  C_MODERN_COPY
+  D_AI_GENERATED
+}
+
+enum AssetKind {
+  SOURCE_PAGE
+  GLYPH_CROP
+  THUMBNAIL
+  CONTEXT_CROP
+}
+
+enum ReviewDecision {
+  APPROVED
+  CHANGES_REQUESTED
+  REJECTED
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+  DELETION_PENDING
+}
+
+enum ArtworkStatus {
+  PENDING_UPLOAD
+  UPLOADED
+  PROCESSING
+  READY
+  FAILED
+  DELETION_PENDING
+  DELETED
+}
+
+enum AnalysisStatus {
+  PENDING
+  PROCESSING
+  PASSED
+  NEEDS_RETAKE
+  FAILED
+}
+
+enum ContentSegmentationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum SegmentationCandidateStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum ContentImportBatchStatus {
+  INVALID
+  READY
+  COMMITTED
+}
+
+enum ContentAuditAction {
+  CREATE_CALLIGRAPHER
+  UPDATE_CALLIGRAPHER
+  CREATE_WORK
+  UPDATE_WORK
+  CREATE_EDITION
+  UPDATE_EDITION
+  CREATE_RIGHTS
+  UPDATE_RIGHTS
+  CREATE_SOURCE_ASSET
+  CREATE_SEGMENTATION_JOB
+  COMPLETE_SEGMENTATION_JOB
+  FAIL_SEGMENTATION_JOB
+  ACCEPT_SEGMENTATION_CANDIDATE
+  REJECT_SEGMENTATION_CANDIDATE
+  CREATE_IMPORT_BATCH
+  COMMIT_IMPORT_BATCH
+  CREATE_GLYPH
+  UPDATE_GLYPH
+  UPDATE_FEEDBACK
+  REVIEW_ADVICE
+  REVIEW_GLYPH
+  PUBLISH_GLYPH
+  UNPUBLISH_GLYPH
+}
+
+enum AdviceReviewVerdict {
+  APPROVED
+  NEEDS_ADJUSTMENT
+  NOT_APPLICABLE
+}
+
+enum ProductEventName {
+  ARTWORK_UPLOAD_COMPLETED
+  CHARACTER_CONFIRMED
+  CATALOG_RESULTS_VIEWED
+  GLYPH_SELECTED
+  PRACTICE_CREATED
+  ADVICE_VIEWED
+  SECOND_ATTEMPT_STARTED
+  PRACTICE_COMPLETED
+}
+
+enum PracticeAnalysisStatus {
+  PENDING
+  READY
+  FAILED
+}
+
+enum ArtworkDeletionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum FeedbackKind {
+  STRUCTURE_ADVICE
+  RECOGNITION_ERROR
+  QUALITY_RESULT
+  CONTENT_ERROR
+  PRODUCT
+}
+
+enum FeedbackStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  DISMISSED
+}
+
+enum UserConsentDimension {
+  STORAGE
+  PUBLIC_SHARING
+  MODEL_TRAINING
+}
+
+model Character {
+  id                String             @id @default(uuid()) @db.Uuid
+  value             String             @unique @db.VarChar(8)
+  unicodeCodePoint  String             @unique @map("unicode_code_point") @db.VarChar(32)
+  radical           String?            @db.VarChar(8)
+  structureType     String?            @map("structure_type") @db.VarChar(32)
+  frequencyRank     Int?               @map("frequency_rank")
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  variants          CharacterVariant[]
+  glyphs            Glyph[]
+  confirmedArtworks UserArtwork[]
+  practiceSessions  PracticeSession[]
+
+  @@map("characters")
+}
+
+model CharacterVariant {
+  id                   String               @id @default(uuid()) @db.Uuid
+  canonicalCharacterId String               @map("canonical_character_id") @db.Uuid
+  value                String               @db.VarChar(8)
+  type                 CharacterVariantType
+  canonicalCharacter   Character            @relation(fields: [canonicalCharacterId], references: [id], onDelete: Cascade)
+
+  @@unique([canonicalCharacterId, value, type])
+  @@index([value])
+  @@map("character_variants")
+}
+
+model Calligrapher {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(100)
+  dynasty   String   @db.VarChar(64)
+  birthYear Int?     @map("birth_year")
+  deathYear Int?     @map("death_year")
+  biography String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  works     Work[]
+
+  @@unique([name, dynasty])
+  @@map("calligraphers")
+}
+
+model Work {
+  id             String        @id @default(uuid()) @db.Uuid
+  title          String        @db.VarChar(200)
+  dynasty        String        @db.VarChar(64)
+  scriptStyle    ScriptStyle   @map("script_style")
+  calligrapherId String        @map("calligrapher_id") @db.Uuid
+  description    String?
+  isActive       Boolean       @default(true) @map("is_active")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  calligrapher   Calligrapher  @relation(fields: [calligrapherId], references: [id], onDelete: Restrict)
+  editions       WorkEdition[]
+
+  @@unique([title, calligrapherId])
+  @@index([scriptStyle])
+  @@map("works")
+}
+
+model WorkEdition {
+  id                   String                       @id @default(uuid()) @db.Uuid
+  workId               String                       @map("work_id") @db.Uuid
+  name                 String                       @db.VarChar(200)
+  holdingInstitution   String?                      @map("holding_institution") @db.VarChar(200)
+  publication          String?                      @db.VarChar(300)
+  sourceUrl            String?                      @map("source_url") @db.VarChar(2000)
+  isActive             Boolean                      @default(true) @map("is_active")
+  createdAt            DateTime                     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  work                 Work                         @relation(fields: [workId], references: [id], onDelete: Restrict)
+  sourceAssets         SourceAsset[]
+  sourceUploadSessions ContentSourceUploadSession[]
+
+  @@unique([workId, name])
+  @@map("work_editions")
+}
+
+model RightsRecord {
+  id                   String                       @id @default(uuid()) @db.Uuid
+  status               RightsStatus
+  sourceName           String                       @map("source_name") @db.VarChar(200)
+  sourceUrl            String?                      @map("source_url") @db.VarChar(2000)
+  licenseName          String?                      @map("license_name") @db.VarChar(200)
+  attributionText      String?                      @map("attribution_text") @db.VarChar(1000)
+  allowCommercial      Boolean                      @default(false) @map("allow_commercial")
+  maxPublicWidth       Int?                         @map("max_public_width")
+  validFrom            DateTime?                    @map("valid_from") @db.Timestamptz(6)
+  validUntil           DateTime?                    @map("valid_until") @db.Timestamptz(6)
+  notes                String?
+  createdAt            DateTime                     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  sourceAssets         SourceAsset[]
+  sourceUploadSessions ContentSourceUploadSession[]
+
+  @@index([status])
+  @@map("rights_records")
+}
+
+model SourceAsset {
+  id               String                      @id @default(uuid()) @db.Uuid
+  editionId        String                      @map("edition_id") @db.Uuid
+  rightsRecordId   String                      @map("rights_record_id") @db.Uuid
+  objectKey        String                      @unique @map("object_key") @db.VarChar(1000)
+  checksumSha256   String                      @unique @map("checksum_sha256") @db.Char(64)
+  mimeType         String                      @map("mime_type") @db.VarChar(100)
+  width            Int
+  height           Int
+  pageLabel        String?                     @map("page_label") @db.VarChar(100)
+  createdAt        DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  edition          WorkEdition                 @relation(fields: [editionId], references: [id], onDelete: Restrict)
+  rightsRecord     RightsRecord                @relation(fields: [rightsRecordId], references: [id], onDelete: Restrict)
+  glyphs           Glyph[]
+  uploadSession    ContentSourceUploadSession?
+  segmentationJobs ContentSegmentationJob[]
+
+  @@index([editionId])
+  @@index([rightsRecordId])
+  @@map("source_assets")
+}
+
+model ContentSegmentationJob {
+  id               String                         @id @default(uuid()) @db.Uuid
+  sourceAssetId    String                         @map("source_asset_id") @db.Uuid
+  activeKey        String?                        @unique @map("active_key") @db.VarChar(36)
+  status           ContentSegmentationStatus      @default(PENDING)
+  requestedBy      String                         @map("requested_by") @db.VarChar(200)
+  algorithmVersion String?                        @map("algorithm_version") @db.VarChar(100)
+  failureCode      String?                        @map("failure_code") @db.VarChar(100)
+  failureMessage   String?                        @map("failure_message") @db.VarChar(1000)
+  startedAt        DateTime?                      @map("started_at") @db.Timestamptz(6)
+  completedAt      DateTime?                      @map("completed_at") @db.Timestamptz(6)
+  createdAt        DateTime                       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime                       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  sourceAsset      SourceAsset                    @relation(fields: [sourceAssetId], references: [id], onDelete: Restrict)
+  candidates       ContentSegmentationCandidate[]
+
+  @@index([sourceAssetId, createdAt])
+  @@index([status, createdAt])
+  @@map("content_segmentation_jobs")
+}
+
+model ContentSegmentationCandidate {
+  id            String                      @id @default(uuid()) @db.Uuid
+  jobId         String                      @map("job_id") @db.Uuid
+  sortOrder     Int                         @map("sort_order")
+  bboxX         Int                         @map("bbox_x")
+  bboxY         Int                         @map("bbox_y")
+  bboxWidth     Int                         @map("bbox_width")
+  bboxHeight    Int                         @map("bbox_height")
+  confidence    Int
+  status        SegmentationCandidateStatus @default(PENDING)
+  glyphId       String?                     @unique @map("glyph_id") @db.Uuid
+  annotatedBy   String?                     @map("annotated_by") @db.VarChar(200)
+  annotatedAt   DateTime?                   @map("annotated_at") @db.Timestamptz(6)
+  rejectionNote String?                     @map("rejection_note") @db.VarChar(1000)
+  createdAt     DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  job           ContentSegmentationJob      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  glyph         Glyph?                      @relation(fields: [glyphId], references: [id], onDelete: SetNull)
+
+  @@unique([jobId, sortOrder])
+  @@index([jobId, status])
+  @@map("content_segmentation_candidates")
+}
+
+model ContentImportBatch {
+  id             String                   @id @default(uuid()) @db.Uuid
+  actorKey       String                   @map("actor_key") @db.VarChar(200)
+  fileName       String                   @map("file_name") @db.VarChar(255)
+  checksumSha256 String                   @map("checksum_sha256") @db.Char(64)
+  status         ContentImportBatchStatus
+  totalRows      Int                      @map("total_rows")
+  validRows      Int                      @map("valid_rows")
+  invalidRows    Int                      @map("invalid_rows")
+  committedAt    DateTime?                @map("committed_at") @db.Timestamptz(6)
+  createdAt      DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  rows           ContentImportRow[]
+
+  @@index([actorKey, createdAt])
+  @@index([status, createdAt])
+  @@index([checksumSha256])
+  @@map("content_import_batches")
+}
+
+model ContentImportRow {
+  id               String             @id @default(uuid()) @db.Uuid
+  batchId          String             @map("batch_id") @db.Uuid
+  rowNumber        Int                @map("row_number")
+  targetGlyphId    String?            @unique @map("target_glyph_id") @db.Uuid
+  rawData          Json               @map("raw_data")
+  normalizedData   Json?              @map("normalized_data")
+  validationErrors Json               @map("validation_errors")
+  batch            ContentImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@unique([batchId, rowNumber])
+  @@index([batchId])
+  @@map("content_import_rows")
+}
+
+model ContentSourceUploadSession {
+  id             String       @id @default(uuid()) @db.Uuid
+  actorKey       String       @map("actor_key") @db.VarChar(200)
+  editionId      String       @map("edition_id") @db.Uuid
+  rightsRecordId String       @map("rights_record_id") @db.Uuid
+  sourceAssetId  String?      @unique @map("source_asset_id") @db.Uuid
+  objectKey      String       @unique @map("object_key") @db.VarChar(1000)
+  checksumSha256 String       @map("checksum_sha256") @db.Char(64)
+  mimeType       String       @map("mime_type") @db.VarChar(100)
+  width          Int
+  height         Int
+  pageLabel      String?      @map("page_label") @db.VarChar(100)
+  sizeBytes      Int          @map("size_bytes")
+  expiresAt      DateTime     @map("expires_at") @db.Timestamptz(6)
+  completedAt    DateTime?    @map("completed_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  edition        WorkEdition  @relation(fields: [editionId], references: [id], onDelete: Restrict)
+  rightsRecord   RightsRecord @relation(fields: [rightsRecordId], references: [id], onDelete: Restrict)
+  sourceAsset    SourceAsset? @relation(fields: [sourceAssetId], references: [id], onDelete: SetNull)
+
+  @@index([actorKey, createdAt])
+  @@index([checksumSha256])
+  @@index([expiresAt])
+  @@map("content_source_upload_sessions")
+}
+
+model Glyph {
+  id                    String                        @id @default(uuid()) @db.Uuid
+  characterId           String                        @map("character_id") @db.Uuid
+  sourceAssetId         String                        @map("source_asset_id") @db.Uuid
+  scriptStyle           ScriptStyle                   @map("script_style")
+  contentStatus         ContentStatus                 @default(DRAFT) @map("content_status")
+  authenticityGrade     AuthenticityGrade             @map("authenticity_grade")
+  bboxX                 Int                           @map("bbox_x")
+  bboxY                 Int                           @map("bbox_y")
+  bboxWidth             Int                           @map("bbox_width")
+  bboxHeight            Int                           @map("bbox_height")
+  imageQuality          Int                           @default(0) @map("image_quality")
+  beginnerWeight        Int                           @default(0) @map("beginner_weight")
+  observedCharacter     String?                       @map("observed_character") @db.VarChar(8)
+  labelCandidates       Json?                         @map("label_candidates")
+  transcription         String?
+  annotatedBy           String?                       @map("annotated_by") @db.VarChar(200)
+  publishedAt           DateTime?                     @map("published_at") @db.Timestamptz(6)
+  createdAt             DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  character             Character                     @relation(fields: [characterId], references: [id], onDelete: Restrict)
+  sourceAsset           SourceAsset                   @relation(fields: [sourceAssetId], references: [id], onDelete: Restrict)
+  assets                GlyphAsset[]
+  reviews               ContentReview[]
+  practiceSessions      PracticeSession[]
+  favorites             FavoriteGlyph[]
+  segmentationCandidate ContentSegmentationCandidate?
+
+  @@unique([sourceAssetId, bboxX, bboxY, bboxWidth, bboxHeight])
+  @@index([characterId, contentStatus, scriptStyle])
+  @@index([sourceAssetId])
+  @@map("glyphs")
+}
+
+model GlyphAsset {
+  id        String    @id @default(uuid()) @db.Uuid
+  glyphId   String    @map("glyph_id") @db.Uuid
+  kind      AssetKind
+  objectKey String    @unique @map("object_key") @db.VarChar(1000)
+  mimeType  String    @map("mime_type") @db.VarChar(100)
+  width     Int
+  height    Int
+  checksum  String    @db.Char(64)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  glyph     Glyph     @relation(fields: [glyphId], references: [id], onDelete: Cascade)
+
+  @@index([glyphId, kind])
+  @@map("glyph_assets")
+}
+
+model ContentReview {
+  id          String         @id @default(uuid()) @db.Uuid
+  glyphId     String         @map("glyph_id") @db.Uuid
+  reviewerKey String         @map("reviewer_key") @db.VarChar(100)
+  decision    ReviewDecision
+  note        String?
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  glyph       Glyph          @relation(fields: [glyphId], references: [id], onDelete: Cascade)
+
+  @@index([glyphId, createdAt])
+  @@map("content_reviews")
+}
+
+model ContentAudit {
+  id         String             @id @default(uuid()) @db.Uuid
+  actorKey   String             @map("actor_key") @db.VarChar(200)
+  action     ContentAuditAction
+  entityType String             @map("entity_type") @db.VarChar(100)
+  entityId   String             @map("entity_id") @db.Uuid
+  snapshot   Json?
+  createdAt  DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorKey, createdAt])
+  @@map("content_audits")
+}
+
+model User {
+  id                String                 @id @default(uuid()) @db.Uuid
+  phoneHash         String?                @unique @map("phone_hash") @db.Char(64)
+  displayName       String?                @map("display_name") @db.VarChar(100)
+  status            UserStatus             @default(ACTIVE)
+  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  artworks          UserArtwork[]
+  practiceSessions  PracticeSession[]
+  favoriteGlyphs    FavoriteGlyph[]
+  favoriteGroups    FavoriteGroup[]
+  shareLinks        ShareLink[]
+  feedback          UserFeedback[]
+  sessions          UserSession[]
+  privacyPreference UserPrivacyPreference?
+  consentAudits     UserConsentAudit[]
+  productEvents     ProductEvent[]
+
+  @@map("users")
+}
+
+model UserPrivacyPreference {
+  userId              String   @id @map("user_id") @db.Uuid
+  allowArtworkStorage Boolean  @default(true) @map("allow_artwork_storage")
+  allowPublicSharing  Boolean  @default(false) @map("allow_public_sharing")
+  allowModelTraining  Boolean  @default(false) @map("allow_model_training")
+  policyVersion       String   @map("policy_version") @db.VarChar(50)
+  storageUpdatedAt    DateTime @default(now()) @map("storage_updated_at") @db.Timestamptz(6)
+  sharingUpdatedAt    DateTime @default(now()) @map("sharing_updated_at") @db.Timestamptz(6)
+  trainingUpdatedAt   DateTime @default(now()) @map("training_updated_at") @db.Timestamptz(6)
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_privacy_preferences")
+}
+
+model UserConsentAudit {
+  id            String               @id @default(uuid()) @db.Uuid
+  userId        String               @map("user_id") @db.Uuid
+  dimension     UserConsentDimension
+  enabled       Boolean
+  policyVersion String               @map("policy_version") @db.VarChar(50)
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dimension, createdAt])
+  @@map("user_consent_audits")
+}
+
+model UserSession {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  refreshTokenHash String    @unique @map("refresh_token_hash") @db.Char(64)
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
+  lastUsedAt       DateTime? @map("last_used_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+  @@map("user_sessions")
+}
+
+model UserFeedback {
+  id             String         @id @default(uuid()) @db.Uuid
+  userId         String         @map("user_id") @db.Uuid
+  kind           FeedbackKind
+  referenceType  String?        @map("reference_type") @db.VarChar(100)
+  referenceId    String?        @map("reference_id") @db.Uuid
+  accurate       Boolean?
+  message        String?
+  status         FeedbackStatus @default(OPEN)
+  assignedTo     String?        @map("assigned_to") @db.VarChar(100)
+  resolutionNote String?        @map("resolution_note")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  resolvedAt     DateTime?      @map("resolved_at") @db.Timestamptz(6)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@map("user_feedback")
+}
+
+model UserArtwork {
+  id                   String               @id @default(uuid()) @db.Uuid
+  userId               String               @map("user_id") @db.Uuid
+  confirmedCharacterId String?              @map("confirmed_character_id") @db.Uuid
+  originalObjectKey    String               @unique @map("original_object_key") @db.VarChar(1000)
+  mimeType             String               @map("mime_type") @db.VarChar(100)
+  sizeBytes            Int                  @map("size_bytes")
+  width                Int
+  height               Int
+  status               ArtworkStatus        @default(PENDING_UPLOAD)
+  failureCode          String?              @map("failure_code") @db.VarChar(100)
+  uploadedAt           DateTime?            @map("uploaded_at") @db.Timestamptz(6)
+  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user                 User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
+  confirmedCharacter   Character?           @relation(fields: [confirmedCharacterId], references: [id], onDelete: SetNull)
+  uploadSession        UploadSession?
+  analysis             ArtworkAnalysis?
+  practiceAttempt      PracticeAttempt?
+  deletionTask         ArtworkDeletionTask?
+
+  @@index([userId, createdAt])
+  @@index([confirmedCharacterId])
+  @@index([status])
+  @@map("user_artworks")
+}
+
+model ArtworkDeletionTask {
+  id             String                @id @default(uuid()) @db.Uuid
+  artworkId      String                @unique @map("artwork_id") @db.Uuid
+  objectKey      String                @map("object_key") @db.VarChar(1000)
+  status         ArtworkDeletionStatus @default(PENDING)
+  attemptNumber  Int                   @default(1) @map("attempt_number")
+  failureCode    String?               @map("failure_code") @db.VarChar(100)
+  failureMessage String?               @map("failure_message") @db.VarChar(2000)
+  requestedAt    DateTime              @default(now()) @map("requested_at") @db.Timestamptz(6)
+  completedAt    DateTime?             @map("completed_at") @db.Timestamptz(6)
+  updatedAt      DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  artwork        UserArtwork           @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+
+  @@index([status, requestedAt])
+  @@map("artwork_deletion_tasks")
+}
+
+model PracticeSession {
+  id              String            @id @default(uuid()) @db.Uuid
+  userId          String            @map("user_id") @db.Uuid
+  characterId     String            @map("character_id") @db.Uuid
+  selectedGlyphId String            @map("selected_glyph_id") @db.Uuid
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  character       Character         @relation(fields: [characterId], references: [id], onDelete: Restrict)
+  selectedGlyph   Glyph             @relation(fields: [selectedGlyphId], references: [id], onDelete: Restrict)
+  attempts        PracticeAttempt[]
+  shareLinks      ShareLink[]
+  productEvents   ProductEvent[]
+
+  @@index([userId, createdAt])
+  @@index([characterId])
+  @@map("practice_sessions")
+}
+
+model PracticeAttempt {
+  id             String               @id @default(uuid()) @db.Uuid
+  sessionId      String               @map("session_id") @db.Uuid
+  artworkId      String               @unique @map("artwork_id") @db.Uuid
+  sequence       Int
+  adviceSnapshot Json?                @map("advice_snapshot")
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  session        PracticeSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  artwork        UserArtwork          @relation(fields: [artworkId], references: [id], onDelete: Restrict)
+  adviceReview   AdviceReview?
+  analysisRun    PracticeAnalysisRun?
+
+  @@unique([sessionId, sequence])
+  @@index([sessionId, createdAt])
+  @@map("practice_attempts")
+}
+
+model PracticeAnalysisRun {
+  id                   String                 @id @default(uuid()) @db.Uuid
+  attemptId            String                 @unique @map("attempt_id") @db.Uuid
+  status               PracticeAnalysisStatus @default(PENDING)
+  userObjectKey        String                 @map("user_object_key") @db.VarChar(1000)
+  masterObjectKey      String                 @map("master_object_key") @db.VarChar(1000)
+  userChecksumSha256   String?                @map("user_checksum_sha256") @db.Char(64)
+  masterChecksumSha256 String?                @map("master_checksum_sha256") @db.Char(64)
+  normalizationVersion String?                @map("normalization_version") @db.VarChar(100)
+  measurementVersion   String?                @map("measurement_version") @db.VarChar(100)
+  ruleVersion          String?                @map("rule_version") @db.VarChar(100)
+  modelVersion         String?                @map("model_version") @db.VarChar(100)
+  resultSnapshot       Json?                  @map("result_snapshot")
+  failureCode          String?                @map("failure_code") @db.VarChar(100)
+  failureMessage       String?                @map("failure_message")
+  queuedAt             DateTime               @default(now()) @map("queued_at") @db.Timestamptz(6)
+  completedAt          DateTime?              @map("completed_at") @db.Timestamptz(6)
+  updatedAt            DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  attempt              PracticeAttempt        @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([status, queuedAt])
+  @@index([modelVersion, ruleVersion])
+  @@map("practice_analysis_runs")
+}
+
+model AdviceReview {
+  id          String              @id @default(uuid()) @db.Uuid
+  attemptId   String              @unique @map("attempt_id") @db.Uuid
+  reviewerKey String              @map("reviewer_key") @db.VarChar(200)
+  verdict     AdviceReviewVerdict
+  comment     String
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  attempt     PracticeAttempt     @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([verdict, updatedAt])
+  @@index([reviewerKey, updatedAt])
+  @@map("advice_reviews")
+}
+
+model ProductEvent {
+  id                String           @id @db.Uuid
+  userId            String           @map("user_id") @db.Uuid
+  name              ProductEventName
+  practiceSessionId String?          @map("practice_session_id") @db.Uuid
+  occurredAt        DateTime         @map("occurred_at") @db.Timestamptz(6)
+  receivedAt        DateTime         @default(now()) @map("received_at") @db.Timestamptz(6)
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  practiceSession   PracticeSession? @relation(fields: [practiceSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name, practiceSessionId])
+  @@index([name, occurredAt])
+  @@index([userId, occurredAt])
+  @@index([practiceSessionId, occurredAt])
+  @@map("product_events")
+}
+
+model FavoriteGlyph {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+  glyphId   String         @map("glyph_id") @db.Uuid
+  groupId   String?        @map("group_id") @db.Uuid
+  sortOrder Int            @default(0) @map("sort_order")
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  glyph     Glyph          @relation(fields: [glyphId], references: [id], onDelete: Cascade)
+  group     FavoriteGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, glyphId])
+  @@index([userId, createdAt])
+  @@index([userId, groupId, sortOrder])
+  @@map("favorite_glyphs")
+}
+
+model FavoriteGroup {
+  id        String          @id @default(uuid()) @db.Uuid
+  userId    String          @map("user_id") @db.Uuid
+  name      String          @db.VarChar(40)
+  sortOrder Int             @default(0) @map("sort_order")
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites FavoriteGlyph[]
+
+  @@unique([userId, name])
+  @@index([userId, sortOrder])
+  @@map("favorite_groups")
+}
+
+model ShareLink {
+  id        String          @id @default(uuid()) @db.Uuid
+  tokenHash String          @unique @map("token_hash") @db.Char(64)
+  userId    String          @map("user_id") @db.Uuid
+  sessionId String          @map("session_id") @db.Uuid
+  expiresAt DateTime        @map("expires_at") @db.Timestamptz(6)
+  revokedAt DateTime?       @map("revoked_at") @db.Timestamptz(6)
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session   PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([sessionId])
+  @@index([expiresAt])
+  @@map("share_links")
+}
+
+model ArtworkAnalysis {
+  id               String         @id @default(uuid()) @db.Uuid
+  artworkId        String         @unique @map("artwork_id") @db.Uuid
+  status           AnalysisStatus @default(PENDING)
+  thresholdVersion String?        @map("threshold_version") @db.VarChar(50)
+  metrics          Json?
+  findings         Json?
+  failureCode      String?        @map("failure_code") @db.VarChar(100)
+  failureMessage   String?        @map("failure_message") @db.VarChar(2000)
+  attempts         Int            @default(0)
+  startedAt        DateTime?      @map("started_at") @db.Timestamptz(6)
+  completedAt      DateTime?      @map("completed_at") @db.Timestamptz(6)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  artwork          UserArtwork    @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@map("artwork_analyses")
+}
+
+model UploadSession {
+  id              String      @id @default(uuid()) @db.Uuid
+  artworkId       String      @unique @map("artwork_id") @db.Uuid
+  clientRequestId String      @unique @map("client_request_id") @db.VarChar(100)
+  objectKey       String      @unique @map("object_key") @db.VarChar(1000)
+  expiresAt       DateTime    @map("expires_at") @db.Timestamptz(6)
+  completedAt     DateTime?   @map("completed_at") @db.Timestamptz(6)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  artwork         UserArtwork @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("upload_sessions")
+}

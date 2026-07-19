@@ -1,0 +1,10 @@
+.git
+.github
+.next
+.turbo
+.venv
+**/.next
+**/dist
+**/node_modules
+**/tsconfig.tsbuildinfo
+node_modules

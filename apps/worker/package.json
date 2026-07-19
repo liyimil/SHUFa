@@ -1,0 +1,23 @@
+{
+  "name": "@calligraphy/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "node --import tsx --test test/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@calligraphy/observability": "workspace:*",
+    "@aws-sdk/client-s3": "3.1090.0",
+    "bullmq": "^5.58.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "tsx": "^4.23.1",
+    "typescript": "^5.9.3"
+  }
+}

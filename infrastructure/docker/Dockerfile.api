@@ -1,0 +1,20 @@
+FROM node:24-bookworm-slim AS builder
+WORKDIR /workspace
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
+COPY apps/api/package.json apps/api/package.json
+COPY packages/observability/package.json packages/observability/package.json
+RUN pnpm install --frozen-lockfile --filter @calligraphy/api...
+COPY apps/api apps/api
+COPY packages/observability packages/observability
+RUN pnpm --filter @calligraphy/observability build
+RUN pnpm --filter @calligraphy/api build
+RUN pnpm --filter @calligraphy/api deploy --legacy --prod /deploy
+
+FROM node:24-bookworm-slim AS runtime
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --chown=node:node --from=builder /deploy ./
+USER node
+EXPOSE 3001
+CMD ["node", "dist/main.js"]

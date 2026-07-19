@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+.expo/
+.turbo/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+apps/api/src/generated/prisma/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and local data
+*.log
+data/
+uploads/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Expo native output generated during local prebuild
+apps/mobile/android/
+apps/mobile/ios/
+.tmp-*-deploy/

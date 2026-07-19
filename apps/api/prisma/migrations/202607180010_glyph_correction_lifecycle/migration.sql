@@ -1,0 +1,1 @@
+ALTER TYPE "ContentAuditAction" ADD VALUE 'UPDATE_GLYPH';

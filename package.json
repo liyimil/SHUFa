@@ -1,0 +1,30 @@
+{
+  "name": "calligraphy-learning-platform",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint apps packages",
+    "contract:check": "pnpm --filter @calligraphy/api openapi:check && pnpm --filter @calligraphy/api-contract check",
+    "contract:generate": "pnpm --filter @calligraphy/api openapi:write && pnpm --filter @calligraphy/api-contract generate",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.7.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.5.0",
+    "prettier": "^3.6.2",
+    "turbo": "^2.10.5",
+    "typescript-eslint": "^8.64.0",
+    "typescript": "^5.9.3"
+  }
+}
