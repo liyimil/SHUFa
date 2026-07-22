@@ -5,6 +5,10 @@ const mockApiOrigin = "http://127.0.0.1:3101";
 const ouyangCalligrapherId = "22222222-2222-4222-8222-222222222222";
 
 async function expectNoAccessibilityViolations(page: Page): Promise<void> {
+  // Next.js can stream page content before dynamic metadata reaches the head.
+  // A missing title is still a failure: this assertion waits for the real
+  // metadata boundary and times out if the document never receives one.
+  await expect(page).toHaveTitle(/\S/);
   const results = await new AxeBuilder({ page }).analyze();
   const summary = results.violations
     .map(

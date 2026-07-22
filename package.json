@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint apps packages",
+    "security:audit": "pnpm audit --audit-level moderate",
     "contract:check": "pnpm --filter @calligraphy/api openapi:check && pnpm --filter @calligraphy/api-contract check",
     "contract:generate": "pnpm --filter @calligraphy/api openapi:write && pnpm --filter @calligraphy/api-contract generate",
     "test": "turbo run test",

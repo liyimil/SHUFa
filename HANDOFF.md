@@ -18,7 +18,7 @@
 4. Compose、迁移、Dockerfile 和运维手册已存在，但本机没有 Docker，真实 PostgreSQL/Redis/MinIO/Staging 链路没有验收。
 5. 当前功能分支为 `codex/openapi-client-errors`，已推送并建立草稿 PR #1；继续开发应保留该分支上的契约、错误处理和离线草稿改动，不要退回旧 `main`。
 
-M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正以及 M5 公开 Web 全部工程任务已完成。下一位 AI 的默认起点是依赖安全公告复核与有界修复，或需要设备的 App 真机验收；不要先做大规模重构。
+M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正、M5 公开 Web 和 Node 依赖公告修复已完成。下一位 AI 的默认起点是 Python 依赖锁与静态类型检查，或需要设备的 App 真机验收；不要先做大规模重构。
 
 ## 1. 产品目标与不能改变的边界
 
@@ -55,8 +55,9 @@ M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正
 5. `PROJECT_STATUS.md`：已经实现的工程闭环、验证基线和外部阻塞。
 6. `TASK_CHECKLIST.md`：逐个任务的完成、部分完成和未完成状态。
 7. `docs/decisions/0001`～`0008`：隐私、收藏、分享、版权、脱敏、图片安全、失败降级和 OpenAPI 决策。
-8. `infrastructure/OPERATIONS.md`：发布、迁移、回滚、备份、删除、告警和上线门禁。
-9. `docs/content-import-runbook.md`：真实内容批量导入流程。
+8. `docs/dependency-security-baseline.md`：当前 Node 公告、精确版本覆盖和兼容性证据。
+9. `infrastructure/OPERATIONS.md`：发布、迁移、回滚、备份、删除、告警和上线门禁。
+10. `docs/content-import-runbook.md`：真实内容批量导入流程。
 
 ## 3. 仓库结构与职责
 
@@ -161,6 +162,7 @@ AI 当前没有 `/recognition` 或 Top-K 接口。`glyph-normalization-v1` 保�
 ### 4.6 安全、隐私、版权与可观测性
 
 - API 安全头、CORS、请求 ID、结构化完成日志和生产配置快速失败。
+- CI 对中危以上 Node 依赖公告快速失败；2026-07-22 基线为零，`pnpm-workspace.yaml` 的六项精确安全覆盖、公告和跨版本兼容证据见 `docs/dependency-security-baseline.md`。
 - 共享脱敏器移除签名 URL、Bearer/JWT、常见凭据、用户对象键、邮箱、手机号和长 Token。
 - 公开分享路径在日志中固定替换为 `:shareToken`，查询串不记录。
 - 后台角色和内部 Worker Token 分开；用户数据操作验证所有权。
@@ -192,7 +194,7 @@ AI 当前没有 `/recognition` 或 Top-K 接口。`glyph-normalization-v1` 保�
 | Admin         | 11/11；Next.js standalone 构建通过                                                                                 |
 | AI            | 12 项 pytest；Ruff 和 FastAPI 边界通过                                                                             |
 | Observability | 3/3 脱敏测试                                                                                                       |
-| 全仓          | Prettier、ESLint、Turbo 类型/测试/构建通过                                                                         |
+| 全仓          | Prettier、ESLint、Node 中危以上依赖审计、Turbo 类型/测试/构建通过                                                  |
 
 已知测试现象：一次全仓运行中 `apps/api/test/app.e2e.test.ts` 子进程整体退出但没有失败断言；单独运行 17/17，通过再次执行全仓测试后 API 143/143。若复现，优先检查 Node 测试并发、资源和子进程退出原因，不要直接放宽业务断言。
 
@@ -392,7 +394,7 @@ WEB_CACHE_INVALIDATION_URL
 
 ### 10.1 第一批：客户端质量
 
-- 复核当前 `pnpm audit` 公告的实际可达性，优先有界升级直接依赖或使用经过测试的最小覆盖，不以忽略规则掩盖高危项。
+- 为 Python 增加可复现依赖锁与静态类型检查；不能只锁开发机 `.venv`，也不能用宽泛忽略掩盖类型问题。
 - 在 Android/iOS 真机验证 App 裁切拖动、方向修正、大图内存、权限和弱网竞争状态；记录设备与系统版本。
 
 ### 10.2 第二批：工程可交接质量
@@ -451,6 +453,6 @@ WEB_CACHE_INVALIDATION_URL
 - 如何配置、生成契约、运行测试和启动服务。
 - 哪些配置已有模板，哪些必须由用户/云平台/专业人员提供。
 - 为什么当前不能公开上线。
-- 下一步为何是依赖安全公告复核或 App 真机验收，而不是重构或换技术栈。
+- 下一步为何是 Python 依赖锁/静态类型或 App 真机验收，而不是重构或换技术栈。
 
 如果以上任何一点仍不清楚，先查本文列出的权威文件和代码，不要猜测。
