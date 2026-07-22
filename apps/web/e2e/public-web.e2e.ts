@@ -25,6 +25,18 @@ test.beforeEach(async ({ request }) => {
 test("查字、筛选并打开来源可追溯的范字详情", async ({ page }, testInfo) => {
   await page.goto("/");
   await expectNoAccessibilityViolations(page);
+  await page.getByRole("link", { name: "了解 App 练习能力" }).click();
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(
+    page.getByRole("heading", { name: "网页帮你查，App 陪你练" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("App · 内测准备中", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /下载/ })).toHaveCount(0);
+  await expectNoAccessibilityViolations(page);
+  await page.getByRole("link", { name: "先在网页查一个字" }).click();
+
   await page.getByLabel("想查哪个字？").fill("永");
   await page.getByRole("button", { name: "查看名家写法" }).click();
 
