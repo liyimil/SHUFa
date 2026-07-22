@@ -3,8 +3,10 @@ WORKDIR /workspace
 RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 COPY apps/admin/package.json apps/admin/package.json
+COPY packages/api-contract/package.json packages/api-contract/package.json
 RUN pnpm install --frozen-lockfile --filter @calligraphy/admin...
 COPY apps/admin apps/admin
+COPY packages/api-contract packages/api-contract
 ARG NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 RUN pnpm --filter @calligraphy/admin build

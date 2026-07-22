@@ -65,6 +65,7 @@ jobs:
   images:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         service: [api, worker, ai, web, admin]
     steps:
