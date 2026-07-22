@@ -16,9 +16,9 @@
 2. “识别”目前依靠用户手动确认；没有毛笔字 Top-K 模型，不能声称识别已完成。
 3. 目录、后台和权利门禁齐全，但仓库不含真实授权名家字库，不能把示例或任意网络图片当真迹。
 4. Compose、迁移、Dockerfile 和运维手册已存在，但本机没有 Docker，真实 PostgreSQL/Redis/MinIO/Staging 链路没有验收。
-5. Git 基线已提交并推送到 `liyimil/SHUFa` 的 `main`；继续开发前应从最新远端提交创建功能分支。
+5. 当前功能分支为 `codex/openapi-client-errors`，已推送并建立草稿 PR #1；继续开发应保留该分支上的契约、错误处理和离线草稿改动，不要退回旧 `main`。
 
-M2-14 和三端错误追踪展示已完成。下一位 AI 的默认起点是实现 App 离线草稿或 Web 浏览器 E2E；不要先做大规模重构。
+M2-14、三端错误追踪展示和 App 离线草稿已完成。下一位 AI 的默认起点是 Web 浏览器 E2E 或 App 内精确框选/方向修正；不要先做大规模重构。
 
 ## 1. 产品目标与不能改变的边界
 
@@ -62,7 +62,7 @@ M2-14 和三端错误追踪展示已完成。下一位 AI 的默认起点是实�
 
 | 路径                     | 技术                                        | 职责                                                                       | 当前状态                                                |
 | ------------------------ | ------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `apps/mobile`            | Expo 57、React Native 0.86                  | 拍照、上传、确认、查字、对比、建议、再练、历史、收藏、分享、反馈、删除     | 核心工程流程已实现；无 Top-K、离线草稿和真机验收        |
+| `apps/mobile`            | Expo 57、React Native 0.86                  | 拍照、上传、确认、查字、对比、建议、再练、历史、收藏、分享、反馈、删除     | 核心工程流程和离线草稿已实现；无 Top-K 和真机验收       |
 | `apps/web`               | Next.js 16、React 19                        | 公开查字、范字详情、分享页、OG/Metadata/JSON-LD                            | 功能和模块测试已完成；缺浏览器 E2E、性能与真实 CDN 验收 |
 | `apps/admin`             | Next.js 16、React 19                        | 内容录入、权利、原图、预切分、框选、标注、导入、审核、发布、反馈、教师抽检 | 工程功能和生成类型已接入；缺真实内容操作验收            |
 | `apps/api`               | NestJS 11、Prisma 7、PostgreSQL             | 模块化单体业务事实和权限边界                                               | 143 项测试通过；22 组迁移；真实数据库未迁移验收         |
@@ -79,6 +79,7 @@ M2-14 和三端错误追踪展示已完成。下一位 AI 的默认起点是实�
 ### 4.1 移动端
 
 - 相机/相册选择、系统图片裁切和权限拒绝提示。
+- 裁切图复制到 Expo 持久文档目录；最小元数据和稳定上传请求 ID 可离线恢复，替换、放弃、提交与损坏状态会清理，避免依赖相册临时 URI 或重复提交。
 - 匿名会话、SecureStore 持久化、Access/Refresh Token 轮换、撤销和旧 Access Token 会话升级。
 - 带 `clientRequestId` 的上传预约、S3 签名直传、完成、取消、丢失响应重试和服务器清理提示。
 - 图片质量轮询；`PASSED`、`NEEDS_RETAKE`、`FAILED` 均有终态处理。
@@ -371,7 +372,7 @@ WEB_CACHE_INVALIDATION_URL
 
 ## 9. Git、生成文件和工作区注意事项
 
-- `.git` 已建立 `main` 基线并推送到 `https://github.com/liyimil/SHUFa.git`；新功能遵循 `CONTRIBUTING.md` 从最新 `main` 创建分支。
+- 远端为 `https://github.com/liyimil/SHUFa.git`；当前 `codex/openapi-client-errors` 已推送并对应草稿 PR #1，新改动继续遵循 `CONTRIBUTING.md`，合并前不要直接写入 `main`。
 - 提交前仍须检查 `.env`、`.venv`、`node_modules`、`.next`、`dist`、`.turbo`、临时 deploy 目录、Prisma 生成文件和真实图片是否被 `.gitignore` 覆盖。
 - 当前存在 `.tmp-api-deploy`、`.tmp-worker-deploy`、`.ruff_cache`、`.turbo` 等本地产物；不要把它们当源码。
 - `packages/api-contract/openapi.json` 和 `packages/api-contract/src/generated.ts` 是受版本控制的生成制品，不得手工修改或用 Prettier 改格式。
@@ -382,7 +383,6 @@ WEB_CACHE_INVALIDATION_URL
 
 ### 10.1 第一批：客户端可靠性
 
-- 补 App 未提交图片/裁切草稿持久化和弱网恢复。
 - 补 App 内精确单字框选/方向修正，避免只依赖系统 `allowsEditing`。
 - 为公开 Web 引入浏览器 E2E，覆盖查字、筛选、详情、分享和撤销失效。
 
@@ -442,6 +442,6 @@ WEB_CACHE_INVALIDATION_URL
 - 如何配置、生成契约、运行测试和启动服务。
 - 哪些配置已有模板，哪些必须由用户/云平台/专业人员提供。
 - 为什么当前不能公开上线。
-- 下一步为何是离线草稿或 Web E2E，而不是重构或换技术栈。
+- 下一步为何是 Web E2E 或 App 精确裁切，而不是重构或换技术栈。
 
 如果以上任何一点仍不清楚，先查本文列出的权威文件和代码，不要猜测。

@@ -4,6 +4,6 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["src/api.ts", "test/**/*.ts"],
+  "include": ["src/api.ts", "src/artwork-draft.ts", "test/**/*.ts"],
   "exclude": []
 }

@@ -1,7 +1,7 @@
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   type GestureResponderEvent,
@@ -69,6 +69,15 @@ import {
   waitForPracticeAdvice,
 } from "./api";
 import {
+  type ArtworkDraft,
+  clearArtworkDraft,
+  markArtworkDraftSubmitted,
+  restoreArtworkDraft,
+  saveArtworkDraft,
+  updateArtworkDraft,
+} from "./artwork-draft";
+import { createExpoArtworkDraftStore } from "./artwork-draft-storage";
+import {
   adjustComparisonRotation,
   adjustComparisonScale,
   beginComparisonGesture,
@@ -83,6 +92,7 @@ import { toggleHistoricalAttempt } from "./history-comparison";
 const accessTokenKey = "calligraphy-access-token";
 const identitySessionKey = "calligraphy-identity-session-v1";
 const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? "";
+const artworkDraftStore = createExpoArtworkDraftStore();
 
 const feedbackKindLabels: Record<FeedbackKind, string> = {
   CONTENT_ERROR: "范字或出处问题",
@@ -98,15 +108,6 @@ const feedbackStatusLabels: Record<FeedbackTicket["status"], string> = {
   OPEN: "待处理",
   RESOLVED: "已解决",
 };
-
-interface SelectedArtwork {
-  fileSize: number | null;
-  height: number;
-  mimeType: string | null;
-  uploadRequestId: string;
-  uri: string;
-  width: number;
-}
 
 interface StoredIdentitySession {
   accessExpiresAt: number;
@@ -133,10 +134,12 @@ type UploadState =
   | "error";
 
 interface ActiveUploadRun {
+  artwork: ArtworkDraft;
   cancelPromise: Promise<void> | null;
   cancelRequested: boolean;
   cleanupFailed: boolean;
   controller: AbortController;
+  renewPromise: Promise<boolean> | null;
   uploadId: string | null;
 }
 
@@ -234,7 +237,8 @@ function StructureGuide({
 }
 
 export default function App() {
-  const [artwork, setArtwork] = useState<SelectedArtwork | null>(null);
+  const [artwork, setArtwork] = useState<ArtworkDraft | null>(null);
+  const artworkSelectionStartedRef = useRef(false);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const activeUploadRunRef = useRef<ActiveUploadRun | null>(null);
   const [uploadCleanupPending, setUploadCleanupPending] = useState(false);
@@ -331,6 +335,28 @@ export default function App() {
   const [privacy, setPrivacy] = useState<PrivacyPreferences | null>(null);
   const [privacyVisible, setPrivacyVisible] = useState(false);
   const [privacyLoading, setPrivacyLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void restoreArtworkDraft(artworkDraftStore)
+      .then((draft) => {
+        if (!active || !draft || artworkSelectionStartedRef.current) return;
+        setArtwork(draft);
+        setStatusMessage(
+          "已恢复上次未提交的本地草稿，可继续上传；图片尚未发送到服务器。",
+        );
+      })
+      .catch(() => {
+        if (active && !artworkSelectionStartedRef.current) {
+          setStatusMessage(
+            "本地草稿暂时无法读取，你仍可重新拍摄或从相册选择。",
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function loadPrivacyPreferences(): Promise<void> {
     if (privacyVisible) {
@@ -506,6 +532,7 @@ export default function App() {
   function chooseFavorite(item: FavoriteGlyphItem): void {
     const applySelection = (): void => {
       if (practice) {
+        void clearArtworkDraft(artworkDraftStore);
         setPractice(null);
         setArtwork(null);
         setArtworkId(null);
@@ -554,6 +581,7 @@ export default function App() {
   }
 
   function openHistoricalPractice(item: PracticeView): void {
+    void clearArtworkDraft(artworkDraftStore);
     setPractice(item);
     setCharacterInput(item.character);
     setArtwork(null);
@@ -586,7 +614,7 @@ export default function App() {
       quality: 0.9,
     });
 
-    handlePickerResult(result);
+    await handlePickerResult(result);
   }
 
   async function openLibrary(): Promise<void> {
@@ -597,10 +625,12 @@ export default function App() {
       quality: 0.9,
     });
 
-    handlePickerResult(result);
+    await handlePickerResult(result);
   }
 
-  function handlePickerResult(result: ImagePicker.ImagePickerResult): void {
+  async function handlePickerResult(
+    result: ImagePicker.ImagePickerResult,
+  ): Promise<void> {
     if (result.canceled) {
       return;
     }
@@ -613,14 +643,28 @@ export default function App() {
       return;
     }
 
-    setArtwork({
-      fileSize: asset.fileSize ?? null,
-      height: asset.height,
-      mimeType: asset.mimeType ?? null,
-      uploadRequestId: createUploadRequestId(),
-      uri: asset.uri,
-      width: asset.width,
-    });
+    artworkSelectionStartedRef.current = true;
+    setStatusMessage("正在把裁切后的图片保存为本地草稿…");
+    let savedArtwork: ArtworkDraft;
+    try {
+      savedArtwork = await saveArtworkDraft(artworkDraftStore, {
+        fileSize: asset.fileSize ?? null,
+        height: asset.height,
+        mimeType: asset.mimeType ?? null,
+        uploadRequestId: createUploadRequestId(),
+        uri: asset.uri,
+        width: asset.width,
+      });
+    } catch (error: unknown) {
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "本地草稿保存失败，请重新选择图片。",
+      );
+      return;
+    }
+
+    setArtwork(savedArtwork);
     setUploadState("idle");
     setStatusMessage(null);
     setQualityFindings([]);
@@ -635,6 +679,35 @@ export default function App() {
       setSelectedGlyph(null);
       setGlyphDetail(null);
     }
+  }
+
+  async function discardLocalArtworkDraft(): Promise<void> {
+    try {
+      await clearArtworkDraft(artworkDraftStore);
+      setArtwork(null);
+      setArtworkId(null);
+      setUploadState("idle");
+      setQualityFindings([]);
+      setCurrentArtworkSaved(false);
+      setStatusMessage("本地草稿已删除，图片未上传到服务器。");
+    } catch {
+      setStatusMessage("本地草稿删除失败，请稍后重试。");
+    }
+  }
+
+  function confirmDiscardLocalArtworkDraft(): void {
+    Alert.alert(
+      "放弃本地草稿？",
+      "裁切后的本机副本会被删除，且无法恢复；尚未上传的图片不会发送到服务器。",
+      [
+        { style: "cancel", text: "取消" },
+        {
+          onPress: () => void discardLocalArtworkDraft(),
+          style: "destructive",
+          text: "放弃草稿",
+        },
+      ],
+    );
   }
 
   function resetComparison(): void {
@@ -783,10 +856,12 @@ export default function App() {
       return;
     }
     const run: ActiveUploadRun = {
+      artwork,
       cancelPromise: null,
       cancelRequested: false,
       cleanupFailed: false,
       controller: new AbortController(),
+      renewPromise: null,
       uploadId: null,
     };
     activeUploadRunRef.current = run;
@@ -823,8 +898,13 @@ export default function App() {
       run.uploadId = upload.uploadId;
       if (run.cancelRequested) {
         await cancelServerUpload(run, accessToken);
+        const retained = await renewDraftAfterCancelledUpload(run);
         setUploadState("idle");
-        setStatusMessage("上传已取消，所选图片仍保留在本机，可重新提交。");
+        setStatusMessage(
+          retained
+            ? "上传已取消，所选图片仍保留在本机，可重新提交。"
+            : "上传已取消，但本地草稿无法安全更新，已从当前页面移除。",
+        );
         return;
       }
 
@@ -848,6 +928,13 @@ export default function App() {
         run.controller.signal,
       );
       run.uploadId = null;
+      let draftStateWarning = "";
+      try {
+        await markArtworkDraftSubmitted(artworkDraftStore, artwork);
+      } catch {
+        draftStateWarning =
+          " 本机草稿状态未能更新；若重启后再次出现，请先放弃草稿，不要重复提交。";
+      }
       trackEvent("ARTWORK_UPLOAD_COMPLETED");
       setUploadState("analyzing");
       setStatusMessage("作品已安全上传，正在检查清晰度和裁切…");
@@ -863,26 +950,37 @@ export default function App() {
       setQualityFindings(quality?.findings ?? []);
       if (quality?.status === "PASSED") {
         setUploadState("passed");
-        setStatusMessage("图片质量通过。接下来确认你写的是哪个字。");
+        setStatusMessage(
+          `图片质量通过。接下来确认你写的是哪个字。${draftStateWarning}`,
+        );
       } else if (quality?.status === "NEEDS_RETAKE") {
         setUploadState("retake");
-        setStatusMessage("这张图片会影响分析准确性，请按下面提示重新拍摄。");
+        setStatusMessage(
+          `这张图片会影响分析准确性，请按下面提示重新拍摄。${draftStateWarning}`,
+        );
       } else if (quality?.status === "FAILED") {
         setUploadState("fallback");
         setStatusMessage(
-          "图片质检服务暂时不可用。本次不会生成质检结论，你仍可手动确认汉字并查看名家写法。",
+          `图片质检服务暂时不可用。本次不会生成质检结论，你仍可手动确认汉字并查看名家写法。${draftStateWarning}`,
         );
       } else {
         setUploadState("error");
-        setStatusMessage("图片分析暂时未完成，你可以稍后在练习记录中查看。");
+        setStatusMessage(
+          `图片分析暂时未完成，你可以稍后在练习记录中查看。${draftStateWarning}`,
+        );
       }
     } catch (error: unknown) {
       if (run.cancelRequested || isAbortError(error)) {
         try {
           const accessToken = await getAccessToken();
           await cancelServerUpload(run, accessToken);
+          const retained = await renewDraftAfterCancelledUpload(run);
           setUploadState("idle");
-          setStatusMessage("上传已取消，服务器待上传记录和私有对象已清理。");
+          setStatusMessage(
+            retained
+              ? "上传已取消，服务器待上传记录和私有对象已清理；本地草稿可重新提交。"
+              : "服务器上传已取消，但本地草稿无法安全更新，已从当前页面移除。",
+          );
         } catch (cleanupError: unknown) {
           run.cleanupFailed = true;
           setUploadCleanupPending(true);
@@ -924,17 +1022,38 @@ export default function App() {
         run.uploadId = null;
         run.cleanupFailed = false;
         setUploadCleanupPending(false);
-        setArtwork((current) =>
-          current
-            ? { ...current, uploadRequestId: createUploadRequestId() }
-            : current,
-        );
       })
       .catch((error: unknown) => {
         run.cancelPromise = null;
         throw error;
       });
     return run.cancelPromise;
+  }
+
+  async function renewDraftAfterCancelledUpload(
+    run: ActiveUploadRun,
+  ): Promise<boolean> {
+    run.renewPromise ??= (async () => {
+      const renewed = {
+        ...run.artwork,
+        uploadRequestId: createUploadRequestId(),
+      };
+      try {
+        await updateArtworkDraft(artworkDraftStore, renewed);
+        run.artwork = renewed;
+        setArtwork((current) =>
+          current?.uri === renewed.uri ? renewed : current,
+        );
+        return true;
+      } catch {
+        await clearArtworkDraft(artworkDraftStore).catch(() => undefined);
+        setArtwork((current) =>
+          current?.uri === renewed.uri ? null : current,
+        );
+        return false;
+      }
+    })();
+    return run.renewPromise;
   }
 
   async function cancelArtworkSubmission(): Promise<void> {
@@ -948,10 +1067,15 @@ export default function App() {
     try {
       const accessToken = await getAccessToken();
       await cancelServerUpload(run, accessToken);
+      const retained = await renewDraftAfterCancelledUpload(run);
       if (activeUploadRunRef.current === run) {
         activeUploadRunRef.current = null;
         setUploadState("idle");
-        setStatusMessage("上传已取消，所选图片仍保留在本机，可重新提交。");
+        setStatusMessage(
+          retained
+            ? "上传已取消，所选图片仍保留在本机，可重新提交。"
+            : "上传已取消，但本地草稿无法安全更新，已从当前页面移除。",
+        );
       }
     } catch (error: unknown) {
       run.cleanupFailed = true;
@@ -1837,6 +1961,15 @@ export default function App() {
           >
             <Text style={styles.secondaryButtonText}>从相册选择</Text>
           </Pressable>
+          {artwork && uploadState === "idle" && !uploadCleanupPending ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={confirmDiscardLocalArtworkDraft}
+              style={styles.cancelUploadButton}
+            >
+              <Text style={styles.cancelUploadText}>放弃本地草稿</Text>
+            </Pressable>
+          ) : null}
           {artwork ? (
             <Pressable
               accessibilityRole="button"
