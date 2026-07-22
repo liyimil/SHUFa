@@ -18,7 +18,7 @@
 4. Compose、迁移、Dockerfile 和运维手册已存在，但本机没有 Docker，真实 PostgreSQL/Redis/MinIO/Staging 链路没有验收。
 5. 当前功能分支为 `codex/openapi-client-errors`，已推送并建立草稿 PR #1；继续开发应保留该分支上的契约、错误处理和离线草稿改动，不要退回旧 `main`。
 
-M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正、M5 公开 Web 和 Node 依赖公告修复已完成。下一位 AI 的默认起点是 Python 依赖锁与静态类型检查，或需要设备的 App 真机验收；不要先做大规模重构。
+M2-04、M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正、M5 公开 Web 和 Node 依赖公告修复已完成。下一位 AI 的默认起点是 AI 跨服务关联 ID，或需要设备的 App 真机验收；不要先做大规模重构。
 
 ## 1. 产品目标与不能改变的边界
 
@@ -61,17 +61,17 @@ M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正
 
 ## 3. 仓库结构与职责
 
-| 路径                     | 技术                                        | 职责                                                                         | 当前状态                                                         |
-| ------------------------ | ------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `apps/mobile`            | Expo 57、React Native 0.86                  | 拍照、裁切、上传、确认、查字、对比、建议、再练、历史、收藏、分享、反馈、删除 | 核心工程流程、精确裁切和离线草稿已实现；无 Top-K 和真机验收      |
-| `apps/web`               | Next.js 16、React 19                        | 公开查字、范字详情、分享页、OG/Metadata/JSON-LD                              | 功能、E2E、axe 与本地 Lighthouse 预算已完成；缺真实 CDN/设备验收 |
-| `apps/admin`             | Next.js 16、React 19                        | 内容录入、权利、原图、预切分、框选、标注、导入、审核、发布、反馈、教师抽检   | 工程功能和生成类型已接入；缺真实内容操作验收                     |
-| `apps/api`               | NestJS 11、Prisma 7、PostgreSQL             | 模块化单体业务事实和权限边界                                                 | 143 项测试通过；22 组迁移；真实数据库未迁移验收                  |
-| `apps/worker`            | Node 24、BullMQ、AWS S3 SDK                 | 质量、裁切、预切分、结构分析和物理删除任务                                   | 12 项测试通过；真实 Redis/S3/AI 跨服务未验证                     |
-| `apps/ai-service`        | Python 3.12、FastAPI、OpenCV、NumPy、Pillow | 图片质量、裁切、预切分、归一化和几何结构比较                                 | 12 项 pytest；没有 Top-K 模型和正式固定评测集                    |
-| `packages/api-contract`  | OpenAPI、openapi-typescript                 | 稳定 OpenAPI 和跨客户端类型                                                  | 73/73 个操作强类型，8 项契约测试                                 |
-| `packages/observability` | TypeScript                                  | API/Worker 共用路径和诊断脱敏                                                | 3 项测试通过                                                     |
-| `packages/domain-types`  | TypeScript                                  | 平台无关领域类型占位包                                                       | 可构建；暂无运行时测试和大规模复用                               |
+| 路径                     | 技术                                        | 职责                                                                         | 当前状态                                                              |
+| ------------------------ | ------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `apps/mobile`            | Expo 57、React Native 0.86                  | 拍照、裁切、上传、确认、查字、对比、建议、再练、历史、收藏、分享、反馈、删除 | 核心工程流程、精确裁切和离线草稿已实现；无 Top-K 和真机验收           |
+| `apps/web`               | Next.js 16、React 19                        | 公开查字、范字详情、分享页、OG/Metadata/JSON-LD                              | 功能、E2E、axe 与本地 Lighthouse 预算已完成；缺真实 CDN/设备验收      |
+| `apps/admin`             | Next.js 16、React 19                        | 内容录入、权利、原图、预切分、框选、标注、导入、审核、发布、反馈、教师抽检   | 工程功能和生成类型已接入；缺真实内容操作验收                          |
+| `apps/api`               | NestJS 11、Prisma 7、PostgreSQL             | 模块化单体业务事实和权限边界                                                 | 143 项测试通过；22 组迁移；真实数据库未迁移验收                       |
+| `apps/worker`            | Node 24、BullMQ、AWS S3 SDK                 | 质量、裁切、预切分、结构分析和物理删除任务                                   | 12 项测试通过；真实 Redis/S3/AI 跨服务未验证                          |
+| `apps/ai-service`        | Python 3.12、FastAPI、OpenCV、NumPy、Pillow | 图片质量、裁切、预切分、归一化和几何结构比较                                 | `uv.lock`、mypy strict、12 项 pytest；没有 Top-K 模型和正式固定评测集 |
+| `packages/api-contract`  | OpenAPI、openapi-typescript                 | 稳定 OpenAPI 和跨客户端类型                                                  | 73/73 个操作强类型，8 项契约测试                                      |
+| `packages/observability` | TypeScript                                  | API/Worker 共用路径和诊断脱敏                                                | 3 项测试通过                                                          |
+| `packages/domain-types`  | TypeScript                                  | 平台无关领域类型占位包                                                       | 可构建；暂无运行时测试和大规模复用                                    |
 
 主要版本：Node 24、pnpm 11.9、TypeScript 5.9、Next 16.2、React 19.2、NestJS 11.1、Prisma 7.8、Expo 57、React Native 0.86、Python 3.12。
 
@@ -192,7 +192,7 @@ AI 当前没有 `/recognition` 或 Top-K 接口。`glyph-normalization-v1` 保�
 | Mobile        | 35/35；类型检查和 Expo Android 静态导出通过                                                                        |
 | Web           | 12/12 模块测试；桌面/Pixel 7 Chromium 4/4 含 axe E2E；首页/单字页 Lighthouse 三轮预算；Next.js standalone 构建通过 |
 | Admin         | 11/11；Next.js standalone 构建通过                                                                                 |
-| AI            | 12 项 pytest；Ruff 和 FastAPI 边界通过                                                                             |
+| AI            | locked 安装、Ruff、mypy strict（11 个文件）和 12 项 pytest 通过                                                    |
 | Observability | 3/3 脱敏测试                                                                                                       |
 | 全仓          | Prettier、ESLint、Node 中危以上依赖审计、Turbo 类型/测试/构建通过                                                  |
 
@@ -218,8 +218,9 @@ $env:NODE_ENV='development'
 pnpm install --frozen-lockfile
 Copy-Item .env.example .env
 
-py -3.12 -m venv .venv
-.venv\Scripts\python -m pip install -e ".\apps\ai-service[dev]"
+Set-Location apps/ai-service
+uv sync --locked --extra dev
+Set-Location ..\..
 ```
 
 本项目曾因 `NODE_ENV=production` 导致 pnpm 忽略开发依赖，因此执行开发命令前显式设为 `development`。
@@ -241,7 +242,7 @@ pnpm --filter @calligraphy/api db:seed
 
 ```powershell
 # 1. AI
-.venv\Scripts\python -m uvicorn calligraphy_ai.main:app --app-dir apps/ai-service/src --reload --port 8000
+uv run --project apps/ai-service uvicorn calligraphy_ai.main:app --app-dir apps/ai-service/src --reload --port 8000
 
 # 2. API
 pnpm --filter @calligraphy/api dev
@@ -276,8 +277,10 @@ pnpm --filter @calligraphy/web exec playwright install chromium
 pnpm --filter @calligraphy/web e2e
 
 Set-Location apps/ai-service
-..\..\.venv\Scripts\python -m ruff check .
-..\..\.venv\Scripts\python -m pytest
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy
+uv run pytest
 ```
 
 Web 本地 `e2e` 会先生产构建，再复制 standalone 静态资源并启动生成的 `server.js`；CI 已在全仓构建后调用 `e2e:ci`，不要在未构建 `.next` 时单独执行 `e2e:ci`。Mock API 仅监听 `127.0.0.1:3101`。
@@ -394,7 +397,7 @@ WEB_CACHE_INVALIDATION_URL
 
 ### 10.1 第一批：客户端质量
 
-- 为 Python 增加可复现依赖锁与静态类型检查；不能只锁开发机 `.venv`，也不能用宽泛忽略掩盖类型问题。
+- 为 AI HTTP 日志接入来自 Worker/API 的关联 ID，并证明跨服务链路脱敏且可追踪。
 - 在 Android/iOS 真机验证 App 裁切拖动、方向修正、大图内存、权限和弱网竞争状态；记录设备与系统版本。
 
 ### 10.2 第二批：工程可交接质量
@@ -453,6 +456,6 @@ WEB_CACHE_INVALIDATION_URL
 - 如何配置、生成契约、运行测试和启动服务。
 - 哪些配置已有模板，哪些必须由用户/云平台/专业人员提供。
 - 为什么当前不能公开上线。
-- 下一步为何是 Python 依赖锁/静态类型或 App 真机验收，而不是重构或换技术栈。
+- 下一步为何是 AI 跨服务关联 ID 或 App 真机验收，而不是重构或换技术栈。
 
 如果以上任何一点仍不清楚，先查本文列出的权威文件和代码，不要猜测。

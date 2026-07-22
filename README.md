@@ -28,6 +28,7 @@
 - Node.js 24 LTS
 - pnpm 11
 - Python 3.12
+- uv 0.11.31
 - Docker（数据库、Redis 与对象存储里程碑需要）
 
 ## 快速开始

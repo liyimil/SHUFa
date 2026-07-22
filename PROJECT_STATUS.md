@@ -25,7 +25,7 @@
 | Mobile   | 类型检查、35 项 API/裁切/离线草稿/手势/历史对比测试和 Expo Android 导出通过                                                  |
 | Web      | 12 项模块测试、桌面/Pixel 7 Chromium 共 4 项含 axe E2E、Lighthouse 首页/单字页三轮预算，以及 Next.js standalone 生产构建通过 |
 | Admin    | 11 项测试与 Next.js standalone 生产构建通过                                                                                  |
-| AI       | 12 项 pytest、Ruff 与 FastAPI 边界通过                                                                                       |
+| AI       | `uv.lock` 可复现安装、Ruff、mypy strict（11 个源码/测试文件）、12 项 pytest 与 FastAPI 边界通过                              |
 | 依赖安全 | `pnpm audit --audit-level moderate` 无已知漏洞；精确覆盖与跨版本兼容证据已记录                                               |
 | 全仓     | Prettier、ESLint、Turbo 类型检查、测试与生产构建全部通过                                                                     |
 

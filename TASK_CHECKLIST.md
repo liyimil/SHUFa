@@ -44,7 +44,7 @@
 - [x] **M2-01 初始化 Git 与 Monorepo**：pnpm Workspace/Turborepo 可运行，`main` 已建立并推送 Git 基线。
 - [x] **M2-02 创建六个应用骨架**：mobile、web、admin、api、worker、ai-service 均有可构建入口或健康边界。
 - [x] **M2-03 TypeScript 严格模式、ESLint、Prettier**：根命令和 CI 均通过。
-- [ ] **M2-04 Python 依赖锁、Ruff、类型检查和 pytest — 部分**：`pyproject.toml`、Ruff 和 pytest 可用；没有独立 Python 锁文件和静态类型检查器。
+- [x] **M2-04 Python 依赖锁、Ruff、类型检查和 pytest**：Python 3.12 依赖由 `uv.lock` 固定，CI 与 AI 生产镜像均以 locked 模式安装；Ruff、mypy strict（`src` + `tests`）和 12 项 pytest 全部通过，细节见 `docs/python-dependency-and-types.md`。
 - [x] **M2-05 提交、分支和代码评审约定**：`CONTRIBUTING.md` 已定义分支、提交、PR、评审、质量门禁和内容/AI 边界。
 - [x] **M2-06 ADR、API 和运维文档目录**：`docs/decisions`、OpenAPI、内容导入及运维手册已存在。
 - [ ] **M2-07 本地 PostgreSQL 18 容器 — 部分**：Compose 已定义健康检查和持久卷；当前机器无 Docker，未启动和迁移验证。
@@ -205,6 +205,7 @@
 - [x] 增加 Web 浏览器 E2E；Playwright 版本、Mock API、桌面/移动项目、CI 浏览器安装和失败制品均已记录。
 - [x] 实现 App 内精确单字框选与方向修正，生成真实裁切草稿并覆盖几何边界测试。
 - [x] 修复 Node 依赖审计中的高/中危公告，CI 增加中危阈值门禁并记录跨版本兼容证据。
+- [x] 为 AI 服务增加 `uv.lock`、mypy strict 和 locked CI/生产镜像安装，修复静态检查发现的类型边界。
 - [ ] 在有 Docker 的环境执行 PostgreSQL/Redis/MinIO 跨服务冒烟；保留命令和输出证据。
 - [ ] 遵循 `CONTRIBUTING.md` 在功能分支提交并发起评审；继续排除 `.env`、构建产物、缓存和真实私有内容。
 - [ ] 外部内容/模型/合规条件缺失时只记录阻塞，不生成无来源图片、虚假准确率或伪专家建议。
