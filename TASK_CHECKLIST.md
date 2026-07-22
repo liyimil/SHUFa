@@ -51,11 +51,11 @@
 - [ ] **M2-08 本地 Redis 容器 — 部分**：Compose 已定义 AOF 和健康检查；未做真实队列连接测试。
 - [ ] **M2-09 本地 S3 兼容对象存储 — 部分**：MinIO、私有/公开桶代码和签名 URL 已定义；未做真实桶初始化与权限审计。
 - [x] **M2-10 环境变量与 Secret 模板**：`.env.example`、生产必填校验、占位 Secret 拒绝和安全测试已实现。
-- [ ] **M2-11 Docker 开发和生产镜像 — 部分**：API、Worker、AI、Web、Admin 五个 Dockerfile 和 CI 构建任务已定义；本机未实际构建镜像。
+- [x] **M2-11 Docker 开发和生产镜像**：API、Worker、AI、Web、Admin 五个生产镜像均在 GitHub Actions Linux runner 实际构建通过；本机仍无 Docker，但不再以 Dockerfile 存在代替构建证据。
 - [ ] **M2-12 数据库迁移基线 — 部分**：Prisma schema 和 22 组迁移可生成/验证；未在空 PostgreSQL 实例执行 `migrate deploy`。
 - [x] **M2-13 CI 静态检查与单元测试**：GitHub Actions 包含格式、Lint、中危以上依赖安全审计、契约、类型、测试、构建和镜像矩阵；2026-07-22 基线无已知公告，精确覆盖与兼容证据见 `docs/dependency-security-baseline.md`。
 - [x] **M2-14 OpenAPI 生成与契约差异检查**：73/73 个操作均有请求/响应、参数、鉴权和生成类型覆盖；Admin 已消费共享生成类型，CI 执行契约漂移检查。
-- [ ] **M2-15 镜像构建与制品命名 — 部分**：CI 以 `${github.sha}` 命名镜像；尚无真实 Registry 制品、签名或保留策略。
+- [ ] **M2-15 镜像构建与制品命名 — 部分**：五个镜像已在 CI 以 `${github.sha}` 命名并实际构建；尚无 Registry 推送制品、签名或保留策略。
 - [ ] **M2-16 结构化日志与追踪 ID — 部分**：API/Worker 有结构化日志、请求/任务 ID 和共享脱敏；AI 服务尚未完整接入跨服务关联 ID。
 - [ ] **M2-17 Staging 初始部署 — 未完成**：无 Staging、域名或 HTTPS 环境。
 

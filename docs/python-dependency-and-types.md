@@ -47,4 +47,4 @@ uv run pytest         12 passed
 production export     不含 mypy/pytest/Ruff/httpx，包含全部 7 个直接运行时依赖
 ```
 
-当前机器没有 Docker，因此 AI 镜像仍需由 GitHub Actions 的镜像矩阵证明可构建；本地 locked 同步、类型和测试结果不能替代真实镜像构建结果。
+当前机器没有 Docker；AI 镜像已由 [GitHub Actions run 29900054074](https://github.com/liyimil/SHUFa/actions/runs/29900054074) 的 Linux 镜像矩阵实际构建通过。本地 locked 同步和该构建结果仍不能替代 PostgreSQL/Redis/S3 跨服务运行验收。

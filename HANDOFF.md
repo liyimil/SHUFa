@@ -15,7 +15,7 @@
 1. 核心 App 流程已经有大量实现，不是只有脚手架。
 2. “识别”目前依靠用户手动确认；没有毛笔字 Top-K 模型，不能声称识别已完成。
 3. 目录、后台和权利门禁齐全，但仓库不含真实授权名家字库，不能把示例或任意网络图片当真迹。
-4. Compose、迁移、Dockerfile 和运维手册已存在，但本机没有 Docker，真实 PostgreSQL/Redis/MinIO/Staging 链路没有验收。
+4. 五个生产镜像已在 GitHub Actions Linux runner 构建通过；本机没有 Docker，真实 PostgreSQL/Redis/MinIO/Staging 运行链路仍未验收。
 5. 当前功能分支为 `codex/openapi-client-errors`，已推送并建立草稿 PR #1；继续开发应保留该分支上的契约、错误处理和离线草稿改动，不要退回旧 `main`。
 
 M2-04、M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正、M5 公开 Web 和 Node 依赖公告修复已完成。下一位 AI 的默认起点是 AI 跨服务关联 ID，或需要设备的 App 真机验收；不要先做大规模重构。
@@ -194,6 +194,7 @@ AI 当前没有 `/recognition` 或 Top-K 接口。`glyph-normalization-v1` 保�
 | Admin         | 11/11；Next.js standalone 构建通过                                                                                 |
 | AI            | locked 安装、Ruff、mypy strict（11 个文件）和 12 项 pytest 通过                                                    |
 | Observability | 3/3 脱敏测试                                                                                                       |
+| 镜像          | [GitHub Actions run 29900054074](https://github.com/liyimil/SHUFa/actions/runs/29900054074) 中五个镜像全部构建通过 |
 | 全仓          | Prettier、ESLint、Node 中危以上依赖审计、Turbo 类型/测试/构建通过                                                  |
 
 已知测试现象：一次全仓运行中 `apps/api/test/app.e2e.test.ts` 子进程整体退出但没有失败断言；单独运行 17/17，通过再次执行全仓测试后 API 143/143。若复现，优先检查 Node 测试并发、资源和子进程退出原因，不要直接放宽业务断言。
@@ -440,7 +441,7 @@ WEB_CACHE_INVALIDATION_URL
 - 不能用手动输入页面声称 Top-K 识别已完成。
 - 不能用 seed 或后台工具声称真实种子字库已完成。
 - 不能用单元测试声称真实 S3/Redis/PostgreSQL 已验收。
-- 不能用 Dockerfile 存在声称镜像已在本机成功构建。
+- 不能用 Dockerfile 存在声称镜像成功；当前只能声称 GitHub Actions Linux 构建通过，不能外推为本地跨服务或生产运行验收。
 - 不能用运维手册声称备份恢复、滚动回滚或告警已演练。
 - 不能用通用几何建议声称书法专家规则已通过。
 - 不能用 Android 静态导出声称 iOS/Android 内测包已发布。
