@@ -18,7 +18,7 @@
 4. Compose、迁移、Dockerfile 和运维手册已存在，但本机没有 Docker，真实 PostgreSQL/Redis/MinIO/Staging 链路没有验收。
 5. 当前功能分支为 `codex/openapi-client-errors`，已推送并建立草稿 PR #1；继续开发应保留该分支上的契约、错误处理和离线草稿改动，不要退回旧 `main`。
 
-M2-14、三端错误追踪展示和 App 离线草稿已完成。下一位 AI 的默认起点是 Web 浏览器 E2E 或 App 内精确框选/方向修正；不要先做大规模重构。
+M2-14、三端错误追踪、App 离线草稿和 Web 浏览器 E2E 已完成。下一位 AI 的默认起点是 App 内精确框选/方向修正，或 Web 性能与可访问性基线；不要先做大规模重构。
 
 ## 1. 产品目标与不能改变的边界
 
@@ -60,17 +60,17 @@ M2-14、三端错误追踪展示和 App 离线草稿已完成。下一位 AI 的
 
 ## 3. 仓库结构与职责
 
-| 路径                     | 技术                                        | 职责                                                                       | 当前状态                                                |
-| ------------------------ | ------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `apps/mobile`            | Expo 57、React Native 0.86                  | 拍照、上传、确认、查字、对比、建议、再练、历史、收藏、分享、反馈、删除     | 核心工程流程和离线草稿已实现；无 Top-K 和真机验收       |
-| `apps/web`               | Next.js 16、React 19                        | 公开查字、范字详情、分享页、OG/Metadata/JSON-LD                            | 功能和模块测试已完成；缺浏览器 E2E、性能与真实 CDN 验收 |
-| `apps/admin`             | Next.js 16、React 19                        | 内容录入、权利、原图、预切分、框选、标注、导入、审核、发布、反馈、教师抽检 | 工程功能和生成类型已接入；缺真实内容操作验收            |
-| `apps/api`               | NestJS 11、Prisma 7、PostgreSQL             | 模块化单体业务事实和权限边界                                               | 143 项测试通过；22 组迁移；真实数据库未迁移验收         |
-| `apps/worker`            | Node 24、BullMQ、AWS S3 SDK                 | 质量、裁切、预切分、结构分析和物理删除任务                                 | 12 项测试通过；真实 Redis/S3/AI 跨服务未验证            |
-| `apps/ai-service`        | Python 3.12、FastAPI、OpenCV、NumPy、Pillow | 图片质量、裁切、预切分、归一化和几何结构比较                               | 12 项 pytest；没有 Top-K 模型和正式固定评测集           |
-| `packages/api-contract`  | OpenAPI、openapi-typescript                 | 稳定 OpenAPI 和跨客户端类型                                                | 73/73 个操作强类型，8 项契约测试                        |
-| `packages/observability` | TypeScript                                  | API/Worker 共用路径和诊断脱敏                                              | 3 项测试通过                                            |
-| `packages/domain-types`  | TypeScript                                  | 平台无关领域类型占位包                                                     | 可构建；暂无运行时测试和大规模复用                      |
+| 路径                     | 技术                                        | 职责                                                                       | 当前状态                                                 |
+| ------------------------ | ------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `apps/mobile`            | Expo 57、React Native 0.86                  | 拍照、上传、确认、查字、对比、建议、再练、历史、收藏、分享、反馈、删除     | 核心工程流程和离线草稿已实现；无 Top-K 和真机验收        |
+| `apps/web`               | Next.js 16、React 19                        | 公开查字、范字详情、分享页、OG/Metadata/JSON-LD                            | 功能、模块测试和浏览器 E2E 已完成；缺性能与真实 CDN 验收 |
+| `apps/admin`             | Next.js 16、React 19                        | 内容录入、权利、原图、预切分、框选、标注、导入、审核、发布、反馈、教师抽检 | 工程功能和生成类型已接入；缺真实内容操作验收             |
+| `apps/api`               | NestJS 11、Prisma 7、PostgreSQL             | 模块化单体业务事实和权限边界                                               | 143 项测试通过；22 组迁移；真实数据库未迁移验收          |
+| `apps/worker`            | Node 24、BullMQ、AWS S3 SDK                 | 质量、裁切、预切分、结构分析和物理删除任务                                 | 12 项测试通过；真实 Redis/S3/AI 跨服务未验证             |
+| `apps/ai-service`        | Python 3.12、FastAPI、OpenCV、NumPy、Pillow | 图片质量、裁切、预切分、归一化和几何结构比较                               | 12 项 pytest；没有 Top-K 模型和正式固定评测集            |
+| `packages/api-contract`  | OpenAPI、openapi-typescript                 | 稳定 OpenAPI 和跨客户端类型                                                | 73/73 个操作强类型，8 项契约测试                         |
+| `packages/observability` | TypeScript                                  | API/Worker 共用路径和诊断脱敏                                              | 3 项测试通过                                             |
+| `packages/domain-types`  | TypeScript                                  | 平台无关领域类型占位包                                                     | 可构建；暂无运行时测试和大规模复用                       |
 
 主要版本：Node 24、pnpm 11.9、TypeScript 5.9、Next 16.2、React 19.2、NestJS 11.1、Prisma 7.8、Expo 57、React Native 0.86、Python 3.12。
 
@@ -103,6 +103,7 @@ M2-14、三端错误追踪展示和 App 离线草稿已完成。下一位 AI 的
 - 动态 Metadata、Open Graph、Twitter Card 和无内部 ID 的 JSON-LD。
 - 公开分享页面、撤销/过期失效页面。
 - 分享 OG PNG 只使用不含用户图片地址的最小摘要。
+- Playwright 通过受控合成 Mock API，在桌面 Chromium 和 Pixel 7 视口回归查字、筛选、详情、来源坐标、有效分享及同一 token 撤销失效；CI 失败时保留 trace、截图和视频。
 
 ### 4.3 内容管理后台
 
@@ -177,19 +178,19 @@ AI 当前没有 `/recognition` 或 Top-K 接口。`glyph-normalization-v1` 保�
 
 ## 5. 当前验证基线
 
-最近一次已记录的全量验证：2026-07-18；契约专项验证更新于 2026-07-22。结果：
+最近一次已记录的全量验证：2026-07-22。结果：
 
-| 范围          | 结果                                                                     |
-| ------------- | ------------------------------------------------------------------------ |
-| API           | 143/143 Node 测试；类型和生产构建通过                                    |
-| API 契约      | 8/8；73 个操作均标记且有响应 Schema，后台鉴权、请求、参数与 CSV 契约通过 |
-| Worker        | 12/12；生产构建通过                                                      |
-| Mobile        | 24/24；类型检查和 Expo Android 静态导出通过                              |
-| Web           | 12/12；Next.js standalone 构建通过                                       |
-| Admin         | 11/11；Next.js standalone 构建通过                                       |
-| AI            | 12 项 pytest；Ruff 和 FastAPI 边界通过                                   |
-| Observability | 3/3 脱敏测试                                                             |
-| 全仓          | Prettier、ESLint、Turbo 类型/测试/构建通过                               |
+| 范围          | 结果                                                                       |
+| ------------- | -------------------------------------------------------------------------- |
+| API           | 143/143 Node 测试；类型和生产构建通过                                      |
+| API 契约      | 8/8；73 个操作均标记且有响应 Schema，后台鉴权、请求、参数与 CSV 契约通过   |
+| Worker        | 12/12；生产构建通过                                                        |
+| Mobile        | 29/29；类型检查和 Expo Android 静态导出通过                                |
+| Web           | 12/12 模块测试；桌面/Pixel 7 Chromium 4/4 E2E；Next.js standalone 构建通过 |
+| Admin         | 11/11；Next.js standalone 构建通过                                         |
+| AI            | 12 项 pytest；Ruff 和 FastAPI 边界通过                                     |
+| Observability | 3/3 脱敏测试                                                               |
+| 全仓          | Prettier、ESLint、Turbo 类型/测试/构建通过                                 |
 
 已知测试现象：一次全仓运行中 `apps/api/test/app.e2e.test.ts` 子进程整体退出但没有失败断言；单独运行 17/17，通过再次执行全仓测试后 API 143/143。若复现，优先检查 Node 测试并发、资源和子进程退出原因，不要直接放宽业务断言。
 
@@ -267,11 +268,15 @@ pnpm contract:check
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm --filter @calligraphy/web exec playwright install chromium
+pnpm --filter @calligraphy/web e2e
 
 Set-Location apps/ai-service
 ..\..\.venv\Scripts\python -m ruff check .
 ..\..\.venv\Scripts\python -m pytest
 ```
+
+Web 本地 `e2e` 会先生产构建，再复制 standalone 静态资源并启动生成的 `server.js`；CI 已在全仓构建后调用 `e2e:ci`，不要在未构建 `.next` 时单独执行 `e2e:ci`。Mock API 仅监听 `127.0.0.1:3101`。
 
 ## 7. 配置矩阵
 
@@ -353,6 +358,8 @@ WEB_CACHE_INVALIDATION_URL
 
 `apps/api/prisma/seed.ts` 只能用于工程/本地数据结构验证。接手者必须检查 seed 内容的权利状态，不得把它宣传为真实名家真迹，也不得把其存在当作 M0-02/M0-03/M4-13 完成证据。
 
+`apps/web/e2e/mock-api.mjs` 只包含明确标注的合成浏览器测试夹具和 `E2E TEST` 占位图；它不属于产品内容源，不得导入数据库、公开发布或作为版权/字库验收证据。
+
 真实内容上线必须经过：
 
 ```text
@@ -384,7 +391,7 @@ WEB_CACHE_INVALIDATION_URL
 ### 10.1 第一批：客户端可靠性
 
 - 补 App 内精确单字框选/方向修正，避免只依赖系统 `allowsEditing`。
-- 为公开 Web 引入浏览器 E2E，覆盖查字、筛选、详情、分享和撤销失效。
+- 为公开 Web 建立 Lighthouse/axe 性能与可访问性基线，并记录无法达到的指标偏差。
 
 ### 10.2 第二批：工程可交接质量
 
@@ -415,7 +422,7 @@ WEB_CACHE_INVALIDATION_URL
 - Top-K 毛笔字识别及其持久化。
 - 真实授权种子字库和专业双人复核。
 - 专业部件比例/主方向规则。
-- Web 浏览器 E2E、App 真机、性能和正式混沌报告。
+- App 真机、Web/全链路性能和正式混沌报告。
 - Docker 跨服务冒烟、Staging、生产、域名/TLS。
 - 数据库/对象存储真实恢复演练和监控告警平台。
 - 手机号/微信登录、Web HttpOnly Cookie、未成年人方案。
@@ -442,6 +449,6 @@ WEB_CACHE_INVALIDATION_URL
 - 如何配置、生成契约、运行测试和启动服务。
 - 哪些配置已有模板，哪些必须由用户/云平台/专业人员提供。
 - 为什么当前不能公开上线。
-- 下一步为何是 Web E2E 或 App 精确裁切，而不是重构或换技术栈。
+- 下一步为何是 App 精确裁切或 Web 性能/可访问性，而不是重构或换技术栈。
 
 如果以上任何一点仍不清楚，先查本文列出的权威文件和代码，不要猜测。

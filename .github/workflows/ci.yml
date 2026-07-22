@@ -27,6 +27,16 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm --filter @calligraphy/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @calligraphy/web e2e:ci
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-e2e-artifacts
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          retention-days: 7
 
   ai:
     runs-on: ubuntu-latest
