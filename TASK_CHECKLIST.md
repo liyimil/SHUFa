@@ -107,7 +107,7 @@
 - [x] **M5-06 Metadata、OG 图和结构化信息**：动态 Metadata、Twitter、JSON-LD 和最小披露分享卡已测试。
 - [x] **M5-07 空结果和错误状态**：不伪造结果并提供返回路径。
 - [ ] **M5-08 响应式与移动端 H5 — 部分**：响应式 CSS 和桌面 Chromium/Pixel 7 视口核心流程 E2E 已通过；仍缺 Safari、真实设备和更完整视口矩阵。
-- [ ] **M5-09 Web 性能与可访问性检查 — 未完成**：没有 Lighthouse、首屏指标或偏差报告。
+- [x] **M5-09 Web 性能与可访问性检查**：production standalone + 受控 Mock API 的 Lighthouse 13 移动端模拟基线按三次中位数验收；首页/单字页性能均为 99、可访问性/最佳实践/SEO 均为 100，LCP 分别为 1,943/1,916 ms。axe 在桌面与 Pixel 7 视口覆盖六种核心状态且无自动违规；预算、环境、偏差边界和命令记录于 `docs/web-performance-accessibility-baseline.md`。
 - [ ] **M5-10 App 引导入口 — 未完成**：公开 Web 尚无明确 App 下载/练习能力引导。
 
 ## M6：App 基础、上传、质量与识别

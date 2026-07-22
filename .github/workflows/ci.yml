@@ -29,6 +29,7 @@ jobs:
       - run: pnpm build
       - run: pnpm --filter @calligraphy/web exec playwright install --with-deps chromium
       - run: pnpm --filter @calligraphy/web e2e:ci
+      - run: pnpm --filter @calligraphy/web audit:ci
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -36,6 +37,7 @@ jobs:
           path: |
             apps/web/playwright-report
             apps/web/test-results
+            apps/web/lighthouse-results
           retention-days: 7
 
   ai:

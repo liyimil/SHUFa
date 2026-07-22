@@ -18,7 +18,7 @@
 4. Compose、迁移、Dockerfile 和运维手册已存在，但本机没有 Docker，真实 PostgreSQL/Redis/MinIO/Staging 链路没有验收。
 5. 当前功能分支为 `codex/openapi-client-errors`，已推送并建立草稿 PR #1；继续开发应保留该分支上的契约、错误处理和离线草稿改动，不要退回旧 `main`。
 
-M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正和 Web 浏览器 E2E 已完成。下一位 AI 的默认起点是 Web 性能与可访问性基线，或需要设备的 App 真机验收；不要先做大规模重构。
+M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正、Web 浏览器 E2E 和 Web 性能/可访问性基线已完成。下一位 AI 的默认起点是公开 Web 的 App 引导入口，或需要设备的 App 真机验收；不要先做大规模重构。
 
 ## 1. 产品目标与不能改变的边界
 
@@ -60,17 +60,17 @@ M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正
 
 ## 3. 仓库结构与职责
 
-| 路径                     | 技术                                        | 职责                                                                         | 当前状态                                                    |
-| ------------------------ | ------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `apps/mobile`            | Expo 57、React Native 0.86                  | 拍照、裁切、上传、确认、查字、对比、建议、再练、历史、收藏、分享、反馈、删除 | 核心工程流程、精确裁切和离线草稿已实现；无 Top-K 和真机验收 |
-| `apps/web`               | Next.js 16、React 19                        | 公开查字、范字详情、分享页、OG/Metadata/JSON-LD                              | 功能、模块测试和浏览器 E2E 已完成；缺性能与真实 CDN 验收    |
-| `apps/admin`             | Next.js 16、React 19                        | 内容录入、权利、原图、预切分、框选、标注、导入、审核、发布、反馈、教师抽检   | 工程功能和生成类型已接入；缺真实内容操作验收                |
-| `apps/api`               | NestJS 11、Prisma 7、PostgreSQL             | 模块化单体业务事实和权限边界                                                 | 143 项测试通过；22 组迁移；真实数据库未迁移验收             |
-| `apps/worker`            | Node 24、BullMQ、AWS S3 SDK                 | 质量、裁切、预切分、结构分析和物理删除任务                                   | 12 项测试通过；真实 Redis/S3/AI 跨服务未验证                |
-| `apps/ai-service`        | Python 3.12、FastAPI、OpenCV、NumPy、Pillow | 图片质量、裁切、预切分、归一化和几何结构比较                                 | 12 项 pytest；没有 Top-K 模型和正式固定评测集               |
-| `packages/api-contract`  | OpenAPI、openapi-typescript                 | 稳定 OpenAPI 和跨客户端类型                                                  | 73/73 个操作强类型，8 项契约测试                            |
-| `packages/observability` | TypeScript                                  | API/Worker 共用路径和诊断脱敏                                                | 3 项测试通过                                                |
-| `packages/domain-types`  | TypeScript                                  | 平台无关领域类型占位包                                                       | 可构建；暂无运行时测试和大规模复用                          |
+| 路径                     | 技术                                        | 职责                                                                         | 当前状态                                                         |
+| ------------------------ | ------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `apps/mobile`            | Expo 57、React Native 0.86                  | 拍照、裁切、上传、确认、查字、对比、建议、再练、历史、收藏、分享、反馈、删除 | 核心工程流程、精确裁切和离线草稿已实现；无 Top-K 和真机验收      |
+| `apps/web`               | Next.js 16、React 19                        | 公开查字、范字详情、分享页、OG/Metadata/JSON-LD                              | 功能、E2E、axe 与本地 Lighthouse 预算已完成；缺真实 CDN/设备验收 |
+| `apps/admin`             | Next.js 16、React 19                        | 内容录入、权利、原图、预切分、框选、标注、导入、审核、发布、反馈、教师抽检   | 工程功能和生成类型已接入；缺真实内容操作验收                     |
+| `apps/api`               | NestJS 11、Prisma 7、PostgreSQL             | 模块化单体业务事实和权限边界                                                 | 143 项测试通过；22 组迁移；真实数据库未迁移验收                  |
+| `apps/worker`            | Node 24、BullMQ、AWS S3 SDK                 | 质量、裁切、预切分、结构分析和物理删除任务                                   | 12 项测试通过；真实 Redis/S3/AI 跨服务未验证                     |
+| `apps/ai-service`        | Python 3.12、FastAPI、OpenCV、NumPy、Pillow | 图片质量、裁切、预切分、归一化和几何结构比较                                 | 12 项 pytest；没有 Top-K 模型和正式固定评测集                    |
+| `packages/api-contract`  | OpenAPI、openapi-typescript                 | 稳定 OpenAPI 和跨客户端类型                                                  | 73/73 个操作强类型，8 项契约测试                                 |
+| `packages/observability` | TypeScript                                  | API/Worker 共用路径和诊断脱敏                                                | 3 项测试通过                                                     |
+| `packages/domain-types`  | TypeScript                                  | 平台无关领域类型占位包                                                       | 可构建；暂无运行时测试和大规模复用                               |
 
 主要版本：Node 24、pnpm 11.9、TypeScript 5.9、Next 16.2、React 19.2、NestJS 11.1、Prisma 7.8、Expo 57、React Native 0.86、Python 3.12。
 
@@ -104,6 +104,7 @@ M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正
 - 公开分享页面、撤销/过期失效页面。
 - 分享 OG PNG 只使用不含用户图片地址的最小摘要。
 - Playwright 通过受控合成 Mock API，在桌面 Chromium 和 Pixel 7 视口回归查字、筛选、详情、来源坐标、有效分享及同一 token 撤销失效；CI 失败时保留 trace、截图和视频。
+- axe-core 在两种视口覆盖首页、未筛选/已筛选单字页、详情、有效/撤销分享六种状态；Lighthouse 13 对 production standalone 的首页和单字页各运行三次并按中位数执行 3 秒首屏及 TTFB/TBT/CLS 预算，方法和基线见 `docs/web-performance-accessibility-baseline.md`。
 
 ### 4.3 内容管理后台
 
@@ -180,17 +181,17 @@ AI 当前没有 `/recognition` 或 Top-K 接口。`glyph-normalization-v1` 保�
 
 最近一次已记录的全量验证：2026-07-22。结果：
 
-| 范围          | 结果                                                                       |
-| ------------- | -------------------------------------------------------------------------- |
-| API           | 143/143 Node 测试；类型和生产构建通过                                      |
-| API 契约      | 8/8；73 个操作均标记且有响应 Schema，后台鉴权、请求、参数与 CSV 契约通过   |
-| Worker        | 12/12；生产构建通过                                                        |
-| Mobile        | 35/35；类型检查和 Expo Android 静态导出通过                                |
-| Web           | 12/12 模块测试；桌面/Pixel 7 Chromium 4/4 E2E；Next.js standalone 构建通过 |
-| Admin         | 11/11；Next.js standalone 构建通过                                         |
-| AI            | 12 项 pytest；Ruff 和 FastAPI 边界通过                                     |
-| Observability | 3/3 脱敏测试                                                               |
-| 全仓          | Prettier、ESLint、Turbo 类型/测试/构建通过                                 |
+| 范围          | 结果                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| API           | 143/143 Node 测试；类型和生产构建通过                                                                              |
+| API 契约      | 8/8；73 个操作均标记且有响应 Schema，后台鉴权、请求、参数与 CSV 契约通过                                           |
+| Worker        | 12/12；生产构建通过                                                                                                |
+| Mobile        | 35/35；类型检查和 Expo Android 静态导出通过                                                                        |
+| Web           | 12/12 模块测试；桌面/Pixel 7 Chromium 4/4 含 axe E2E；首页/单字页 Lighthouse 三轮预算；Next.js standalone 构建通过 |
+| Admin         | 11/11；Next.js standalone 构建通过                                                                                 |
+| AI            | 12 项 pytest；Ruff 和 FastAPI 边界通过                                                                             |
+| Observability | 3/3 脱敏测试                                                                                                       |
+| 全仓          | Prettier、ESLint、Turbo 类型/测试/构建通过                                                                         |
 
 已知测试现象：一次全仓运行中 `apps/api/test/app.e2e.test.ts` 子进程整体退出但没有失败断言；单独运行 17/17，通过再次执行全仓测试后 API 143/143。若复现，优先检查 Node 测试并发、资源和子进程退出原因，不要直接放宽业务断言。
 
@@ -390,7 +391,7 @@ WEB_CACHE_INVALIDATION_URL
 
 ### 10.1 第一批：客户端质量
 
-- 为公开 Web 建立 Lighthouse/axe 性能与可访问性基线，并记录无法达到的指标偏差。
+- 为公开 Web 增加明确的 App 练习能力引导；没有真实下载地址前不得伪造商店链接。
 - 在 Android/iOS 真机验证 App 裁切拖动、方向修正、大图内存、权限和弱网竞争状态；记录设备与系统版本。
 
 ### 10.2 第二批：工程可交接质量
@@ -449,6 +450,6 @@ WEB_CACHE_INVALIDATION_URL
 - 如何配置、生成契约、运行测试和启动服务。
 - 哪些配置已有模板，哪些必须由用户/云平台/专业人员提供。
 - 为什么当前不能公开上线。
-- 下一步为何是 Web 性能/可访问性或 App 真机验收，而不是重构或换技术栈。
+- 下一步为何是 Web 的 App 引导入口或 App 真机验收，而不是重构或换技术栈。
 
 如果以上任何一点仍不清楚，先查本文列出的权威文件和代码，不要猜测。
