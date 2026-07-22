@@ -6,6 +6,7 @@ import {
   Alert,
   type GestureResponderEvent,
   Image,
+  Modal,
   PanResponder,
   Pressable,
   SafeAreaView,
@@ -77,6 +78,12 @@ import {
   updateArtworkDraft,
 } from "./artwork-draft";
 import { createExpoArtworkDraftStore } from "./artwork-draft-storage";
+import { ArtworkCropEditor, type CropEditorSource } from "./ArtworkCropEditor";
+import type { PixelCropRect, QuarterTurn } from "./artwork-crop";
+import {
+  deleteTemporaryCroppedArtwork,
+  renderCroppedArtwork,
+} from "./artwork-crop-image";
 import {
   adjustComparisonRotation,
   adjustComparisonScale,
@@ -141,6 +148,10 @@ interface ActiveUploadRun {
   controller: AbortController;
   renewPromise: Promise<boolean> | null;
   uploadId: string | null;
+}
+
+interface PendingArtworkCrop extends CropEditorSource {
+  mimeType: string | null;
 }
 
 type PrivacyBooleanKey =
@@ -238,6 +249,9 @@ function StructureGuide({
 
 export default function App() {
   const [artwork, setArtwork] = useState<ArtworkDraft | null>(null);
+  const [pendingArtworkCrop, setPendingArtworkCrop] =
+    useState<PendingArtworkCrop | null>(null);
+  const [cropProcessing, setCropProcessing] = useState(false);
   const artworkSelectionStartedRef = useRef(false);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const activeUploadRunRef = useRef<ActiveUploadRun | null>(null);
@@ -608,10 +622,9 @@ export default function App() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
+      allowsEditing: false,
       mediaTypes: ["images"],
-      quality: 0.9,
+      quality: 1,
     });
 
     await handlePickerResult(result);
@@ -619,10 +632,9 @@ export default function App() {
 
   async function openLibrary(): Promise<void> {
     const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
+      allowsEditing: false,
       mediaTypes: ["images"],
-      quality: 0.9,
+      quality: 1,
     });
 
     await handlePickerResult(result);
@@ -643,41 +655,95 @@ export default function App() {
       return;
     }
 
-    artworkSelectionStartedRef.current = true;
-    setStatusMessage("正在把裁切后的图片保存为本地草稿…");
-    let savedArtwork: ArtworkDraft;
-    try {
-      savedArtwork = await saveArtworkDraft(artworkDraftStore, {
-        fileSize: asset.fileSize ?? null,
-        height: asset.height,
-        mimeType: asset.mimeType ?? null,
-        uploadRequestId: createUploadRequestId(),
-        uri: asset.uri,
-        width: asset.width,
-      });
-    } catch (error: unknown) {
-      setStatusMessage(
-        error instanceof Error
-          ? error.message
-          : "本地草稿保存失败，请重新选择图片。",
+    if (
+      !Number.isFinite(asset.width) ||
+      !Number.isFinite(asset.height) ||
+      asset.width <= 0 ||
+      asset.height <= 0 ||
+      asset.width * asset.height > 40_000_000
+    ) {
+      Alert.alert(
+        "图片尺寸不合适",
+        "请选择不超过 4000 万像素、且宽高有效的图片。",
+        [{ text: "知道了" }],
       );
       return;
     }
 
-    setArtwork(savedArtwork);
-    setUploadState("idle");
-    setStatusMessage(null);
-    setQualityFindings([]);
-    setArtworkId(null);
-    setCurrentArtworkSaved(false);
-    if (practice) trackEvent("SECOND_ATTEMPT_STARTED", practice.id);
-    if (!practice) {
-      setCharacterInput("");
-      setGlyphs([]);
-      setCatalogFacets({ calligraphers: [], scriptStyles: [], works: [] });
-      setCatalogFilters({});
-      setSelectedGlyph(null);
-      setGlyphDetail(null);
+    artworkSelectionStartedRef.current = true;
+    setPendingArtworkCrop({
+      height: asset.height,
+      mimeType: asset.mimeType ?? null,
+      uri: asset.uri,
+      width: asset.width,
+    });
+    setStatusMessage("请调整单字选框和输出方向。");
+  }
+
+  function cancelArtworkCrop(): void {
+    if (cropProcessing) return;
+    setPendingArtworkCrop(null);
+    setStatusMessage(artwork ? "已取消裁切，原本地草稿仍保留。" : null);
+  }
+
+  async function confirmArtworkCrop(
+    crop: PixelCropRect,
+    rotation: QuarterTurn,
+  ): Promise<void> {
+    const source = pendingArtworkCrop;
+    if (!source || cropProcessing) return;
+
+    setCropProcessing(true);
+    setStatusMessage("正在生成裁切后的本地草稿…");
+    let temporaryUri: string | null = null;
+    try {
+      const cropped = await renderCroppedArtwork(
+        source.uri,
+        source.mimeType,
+        crop,
+        rotation,
+      );
+      temporaryUri = cropped.uri;
+      const savedArtwork = await saveArtworkDraft(artworkDraftStore, {
+        fileSize: null,
+        height: cropped.height,
+        mimeType: cropped.mimeType,
+        uploadRequestId: createUploadRequestId(),
+        uri: cropped.uri,
+        width: cropped.width,
+      });
+
+      setArtwork(savedArtwork);
+      setPendingArtworkCrop(null);
+      setUploadState("idle");
+      setStatusMessage(null);
+      setQualityFindings([]);
+      setArtworkId(null);
+      setCurrentArtworkSaved(false);
+      if (practice) trackEvent("SECOND_ATTEMPT_STARTED", practice.id);
+      if (!practice) {
+        setCharacterInput("");
+        setGlyphs([]);
+        setCatalogFacets({ calligraphers: [], scriptStyles: [], works: [] });
+        setCatalogFilters({});
+        setSelectedGlyph(null);
+        setGlyphDetail(null);
+      }
+    } catch (error: unknown) {
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "裁切或本地草稿保存失败，请重试。",
+      );
+    } finally {
+      if (temporaryUri) {
+        try {
+          deleteTemporaryCroppedArtwork(temporaryUri);
+        } catch {
+          // The cache file is disposable; draft persistence has already copied it.
+        }
+      }
+      setCropProcessing(false);
     }
   }
 
@@ -1396,6 +1462,23 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
+      <Modal
+        animationType="slide"
+        onRequestClose={cancelArtworkCrop}
+        presentationStyle="pageSheet"
+        visible={pendingArtworkCrop !== null}
+      >
+        <SafeAreaView style={styles.cropModal}>
+          {pendingArtworkCrop ? (
+            <ArtworkCropEditor
+              busy={cropProcessing}
+              onCancel={cancelArtworkCrop}
+              onConfirm={confirmArtworkCrop}
+              source={pendingArtworkCrop}
+            />
+          ) : null}
+        </SafeAreaView>
+      </Modal>
       <ScrollView contentContainerStyle={styles.container}>
         <View>
           <Text style={styles.eyebrow}>AI 书法学习</Text>
@@ -2734,6 +2817,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safeArea: { backgroundColor: "#F3EBDD", flex: 1 },
+  cropModal: { backgroundColor: "#F3EBDD", flex: 1 },
   container: {
     gap: 28,
     justifyContent: "center",
