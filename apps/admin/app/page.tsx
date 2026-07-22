@@ -57,6 +57,18 @@ const feedbackKindLabels: Record<AdminFeedbackTicket["kind"], string> = {
   STRUCTURE_ADVICE: "结构提示问题",
 };
 
+const adviceReviewVerdicts = [
+  "APPROVED",
+  "NEEDS_ADJUSTMENT",
+  "NOT_APPLICABLE",
+] as const;
+
+function isAdviceReviewVerdict(
+  value: string,
+): value is (typeof adviceReviewVerdicts)[number] {
+  return adviceReviewVerdicts.some((verdict) => verdict === value);
+}
+
 const funnelStageLabels: Record<
   AdminFunnelReport["stages"][number]["name"],
   string
@@ -782,12 +794,17 @@ export default function AdminHomePage() {
     event.preventDefault();
     if (!session) return;
     const values = formValues(event.currentTarget);
+    const verdict = String(values.verdict ?? "");
+    if (!isAdviceReviewVerdict(verdict)) {
+      setMessage("请选择有效的抽检结论。");
+      return;
+    }
     setBusy(true);
     setMessage(null);
     try {
       await reviewAdminAdvice(apiBaseUrl, session.accessToken, attemptId, {
         comment: String(values.comment ?? ""),
-        verdict: String(values.verdict ?? ""),
+        verdict,
       });
       setAdviceSamples(
         await getAdminAdviceSamples(

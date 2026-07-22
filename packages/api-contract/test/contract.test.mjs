@@ -22,22 +22,81 @@ describe("generated OpenAPI contract", () => {
     assert.equal(new Set(all.map(({ operationId }) => operationId)).size, 73);
   });
 
-  it("provides JSON response schemas for every marked client operation", () => {
+  it("provides response schemas for every client operation", () => {
     const typed = operations().filter(
       (operation) => operation["x-client-contract"] === true,
     );
-    assert.equal(typed.length, 35);
+    assert.equal(typed.length, 73);
     for (const operation of typed) {
       assert.ok(
         Object.values(operation.responses).some((response) => {
-          const schema = response.content?.["application/json"]?.schema;
-          return (
-            schema?.$ref || (schema?.type === "array" && schema.items?.$ref)
+          return Object.values(response.content ?? {}).some(({ schema }) =>
+            Boolean(
+              schema?.$ref || (schema?.type === "array" && schema.items?.$ref),
+            ),
           );
         }),
-        `${operation.operationId} has no JSON response schema`,
+        `${operation.operationId} has no response schema`,
       );
     }
+  });
+
+  it("types every admin operation and protects all except login", () => {
+    const admin = operations().filter(
+      ({ operationId }) =>
+        operationId.startsWith("Admin") ||
+        operationId.startsWith("ContentAdmin"),
+    );
+    assert.equal(admin.length, 38);
+    assert.ok(admin.every((operation) => operation["x-client-contract"]));
+    for (const operation of admin) {
+      if (operation.operationId === "AdminSessionController_createSession") {
+        assert.equal(operation.security, undefined);
+      } else {
+        assert.deepEqual(operation.security, [{ bearer: [] }]);
+      }
+    }
+  });
+
+  it("types admin mutation bodies, identifiers, and non-JSON exports", () => {
+    const byId = Object.fromEntries(
+      operations().map((operation) => [operation.operationId, operation]),
+    );
+    for (const operationId of [
+      "AdminSessionController_createSession",
+      "ContentAdminController_createCalligrapher",
+      "ContentAdminController_updateRights",
+      "ContentAdminController_createSourceUpload",
+      "ContentAdminController_acceptSegmentationCandidate",
+      "ContentAdminController_reviewGlyph",
+      "AdminFeedbackController_update",
+      "AdminInsightsController_reviewAdvice",
+    ]) {
+      assert.ok(
+        byId[operationId].requestBody.content["application/json"].schema.$ref,
+        `${operationId} has no request schema`,
+      );
+    }
+    for (const [operationId, parameterName] of [
+      ["ContentAdminController_updateCalligrapher", "calligrapherId"],
+      ["ContentAdminController_restoreContentHistory", "auditId"],
+      ["ContentAdminController_completeSourceUpload", "uploadId"],
+      ["ContentAdminController_reviewGlyph", "glyphId"],
+      ["AdminFeedbackController_update", "feedbackId"],
+      ["AdminInsightsController_reviewAdvice", "attemptId"],
+    ]) {
+      assert.equal(
+        byId[operationId].parameters.find(({ name }) => name === parameterName)
+          .schema.format,
+        "uuid",
+      );
+    }
+    assert.equal(
+      byId.ContentAdminController_contentImportTemplate.responses[200].content[
+        "text/csv"
+      ].schema.$ref,
+      "#/components/schemas/CsvDocument",
+    );
   });
 
   it("keeps catalog and identity component schemas concrete", () => {

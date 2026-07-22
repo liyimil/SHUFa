@@ -1,4 +1,6 @@
-import type { operations } from "@calligraphy/api-contract";
+import { readApiClientError, type operations } from "@calligraphy/api-contract";
+
+export { ApiClientError as ApiRequestError } from "@calligraphy/api-contract";
 
 export type ArtworkMimeType = "image/jpeg" | "image/png" | "image/webp";
 
@@ -111,16 +113,6 @@ type FeedbackCreatedResult =
 
 type Fetcher = typeof fetch;
 
-export class ApiRequestError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-  ) {
-    super(message);
-    this.name = "ApiRequestError";
-  }
-}
-
 async function requestJson<T>(
   url: string,
   init: RequestInit,
@@ -128,14 +120,7 @@ async function requestJson<T>(
 ): Promise<T> {
   const response = await fetcher(url, init);
   if (!response.ok) {
-    let message = `请求失败（${response.status}）`;
-    try {
-      const body = (await response.json()) as { message?: string };
-      message = body.message ?? message;
-    } catch {
-      // A non-JSON gateway error still has a useful HTTP status above.
-    }
-    throw new ApiRequestError(message, response.status);
+    throw await readApiClientError(response);
   }
   return (await response.json()) as T;
 }

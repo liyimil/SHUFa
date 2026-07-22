@@ -1,3 +1,4 @@
+import { apiRequestIdHint } from "@calligraphy/api-contract";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -31,18 +32,21 @@ export default async function GlyphDetailPage({
 }: GlyphDetailPageProps) {
   const { glyphId } = await params;
   let glyph: GlyphDetail | null = null;
-  let requestFailed = false;
+  let requestFailureHint: string | null = null;
   try {
     glyph = await fetchGlyphDetail(glyphId);
-  } catch {
-    requestFailed = true;
+  } catch (error: unknown) {
+    requestFailureHint = apiRequestIdHint(error) ?? "";
   }
-  if (requestFailed) {
+  if (requestFailureHint !== null) {
     return (
       <main className="result-shell">
         <div className="error-state">
           <h1>范字详情暂时不可用</h1>
           <p>内容可能已下架、权利已到期，或资料服务暂时不可用。</p>
+          {requestFailureHint ? (
+            <p className="request-id">{requestFailureHint}</p>
+          ) : null}
           <Link className="back-link" href="/">
             返回查字
           </Link>

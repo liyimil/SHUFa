@@ -1,6 +1,1035 @@
 {
   "components": {
     "schemas": {
+      "AcceptSegmentationCandidateRequest": {
+        "properties": {
+          "authenticityGrade": {
+            "enum": [
+              "A_ORIGINAL",
+              "B_RUBBING_OR_AUTHORIZED_EDITION",
+              "C_MODERN_COPY"
+            ],
+            "type": "string"
+          },
+          "bboxHeight": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "bboxWidth": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "bboxX": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "bboxY": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "beginnerWeight": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "canonicalCharacter": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "characterCandidates": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "imageQuality": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "observedCharacter": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "transcription": {
+            "nullable": true,
+            "type": "string"
+          },
+          "variantType": {
+            "enum": [
+              "SIMPLIFIED",
+              "TRADITIONAL",
+              "HISTORICAL",
+              "COMPATIBILITY",
+              null
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "authenticityGrade",
+          "canonicalCharacter",
+          "observedCharacter"
+        ],
+        "type": "object"
+      },
+      "AdminAdviceSample": {
+        "properties": {
+          "advice": {
+            "$ref": "#/components/schemas/PracticeAdvice"
+          },
+          "attemptCreatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "attemptId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "character": {
+            "type": "string"
+          },
+          "master": {
+            "properties": {
+              "calligrapherName": {
+                "type": "string"
+              },
+              "imageUrl": {
+                "format": "uri",
+                "nullable": true,
+                "type": "string"
+              },
+              "workTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "calligrapherName",
+              "imageUrl",
+              "workTitle"
+            ],
+            "type": "object"
+          },
+          "practiceSessionId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "review": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AdviceReview"
+              }
+            ],
+            "nullable": true
+          },
+          "sequence": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "userImageUrl": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "advice",
+          "attemptCreatedAt",
+          "attemptId",
+          "character",
+          "master",
+          "practiceSessionId",
+          "review",
+          "sequence",
+          "userImageUrl"
+        ],
+        "type": "object"
+      },
+      "AdminCalligrapher": {
+        "properties": {
+          "biography": {
+            "nullable": true,
+            "type": "string"
+          },
+          "dynasty": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "biography",
+          "dynasty",
+          "id",
+          "isActive",
+          "name"
+        ],
+        "type": "object"
+      },
+      "AdminContentHistoryEntry": {
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "actorKey": {
+            "type": "string"
+          },
+          "canRestore": {
+            "type": "boolean"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/ContentHistoryChange"
+            },
+            "type": "array"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "entityId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "entityType": {
+            "enum": [
+              "Calligrapher",
+              "Work",
+              "WorkEdition",
+              "RightsRecord",
+              "Glyph"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "snapshot": {}
+        },
+        "required": [
+          "action",
+          "actorKey",
+          "canRestore",
+          "changes",
+          "createdAt",
+          "entityId",
+          "entityType",
+          "id",
+          "snapshot"
+        ],
+        "type": "object"
+      },
+      "AdminContentImportBatch": {
+        "properties": {
+          "actorKey": {
+            "type": "string"
+          },
+          "checksumSha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "committedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "invalidRows": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ContentImportRow"
+            },
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "INVALID",
+              "READY",
+              "COMMITTED"
+            ],
+            "type": "string"
+          },
+          "totalRows": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "validRows": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "actorKey",
+          "checksumSha256",
+          "committedAt",
+          "createdAt",
+          "fileName",
+          "id",
+          "invalidRows",
+          "rows",
+          "status",
+          "totalRows",
+          "validRows"
+        ],
+        "type": "object"
+      },
+      "AdminEdition": {
+        "properties": {
+          "holdingInstitution": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "publication": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceUrl": {
+            "format": "uri",
+            "nullable": true,
+            "type": "string"
+          },
+          "work": {
+            "properties": {
+              "calligrapher": {
+                "properties": {
+                  "isActive": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "isActive"
+                ],
+                "type": "object"
+              },
+              "id": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "isActive": {
+                "type": "boolean"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "calligrapher",
+              "id",
+              "isActive",
+              "title"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "holdingInstitution",
+          "id",
+          "isActive",
+          "name",
+          "publication",
+          "sourceUrl",
+          "work"
+        ],
+        "type": "object"
+      },
+      "AdminFeedbackTicket": {
+        "properties": {
+          "accurate": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "assignedTo": {
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "STRUCTURE_ADVICE",
+              "RECOGNITION_ERROR",
+              "QUALITY_RESULT",
+              "CONTENT_ERROR",
+              "PRODUCT"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "nullable": true,
+            "type": "string"
+          },
+          "referenceId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "referenceType": {
+            "nullable": true,
+            "type": "string"
+          },
+          "resolutionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "resolvedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "OPEN",
+              "IN_PROGRESS",
+              "RESOLVED",
+              "DISMISSED"
+            ],
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accurate",
+          "assignedTo",
+          "createdAt",
+          "id",
+          "kind",
+          "message",
+          "referenceId",
+          "referenceType",
+          "resolutionNote",
+          "resolvedAt",
+          "status",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "AdminFeedbackUpdateRequest": {
+        "minProperties": 1,
+        "properties": {
+          "assignedTo": {
+            "nullable": true,
+            "type": "string"
+          },
+          "resolutionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "OPEN",
+              "IN_PROGRESS",
+              "RESOLVED",
+              "DISMISSED"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AdminFunnelReport": {
+        "properties": {
+          "completionRate": {
+            "nullable": true,
+            "type": "number"
+          },
+          "from": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/AdminFunnelStage"
+            },
+            "type": "array"
+          },
+          "to": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "completionRate",
+          "from",
+          "stages",
+          "to"
+        ],
+        "type": "object"
+      },
+      "AdminFunnelStage": {
+        "properties": {
+          "conversionFromPrevious": {
+            "nullable": true,
+            "type": "number"
+          },
+          "count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "name": {
+            "enum": [
+              "ARTWORK_UPLOAD_COMPLETED",
+              "CHARACTER_CONFIRMED",
+              "CATALOG_RESULTS_VIEWED",
+              "GLYPH_SELECTED",
+              "PRACTICE_CREATED",
+              "ADVICE_VIEWED",
+              "SECOND_ATTEMPT_STARTED",
+              "PRACTICE_COMPLETED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "conversionFromPrevious",
+          "count",
+          "name"
+        ],
+        "type": "object"
+      },
+      "AdminGlyph": {
+        "properties": {
+          "annotatedBy": {
+            "nullable": true,
+            "type": "string"
+          },
+          "authenticityGrade": {
+            "enum": [
+              "A_ORIGINAL",
+              "B_RUBBING_OR_AUTHORIZED_EDITION",
+              "C_MODERN_COPY",
+              "D_AI_GENERATED"
+            ],
+            "type": "string"
+          },
+          "bboxHeight": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "bboxWidth": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "bboxX": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "bboxY": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "beginnerWeight": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number"
+          },
+          "character": {
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "contentStatus": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "imageQuality": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number"
+          },
+          "labelCandidates": {},
+          "observedCharacter": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceAsset": {
+            "properties": {
+              "edition": {
+                "properties": {
+                  "work": {
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "work"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "edition"
+            ],
+            "type": "object"
+          },
+          "transcription": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "annotatedBy",
+          "authenticityGrade",
+          "bboxHeight",
+          "bboxWidth",
+          "bboxX",
+          "bboxY",
+          "beginnerWeight",
+          "character",
+          "contentStatus",
+          "id",
+          "imageQuality",
+          "labelCandidates",
+          "observedCharacter",
+          "sourceAsset",
+          "transcription"
+        ],
+        "type": "object"
+      },
+      "AdminRights": {
+        "properties": {
+          "allowCommercial": {
+            "type": "boolean"
+          },
+          "attributionText": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "licenseName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "maxPublicWidth": {
+            "minimum": 1,
+            "nullable": true,
+            "type": "integer"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceName": {
+            "type": "string"
+          },
+          "sourceUrl": {
+            "format": "uri",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "UNKNOWN",
+              "INTERNAL_TEST_ONLY",
+              "CLEARED_PUBLIC",
+              "RESTRICTED",
+              "EXPIRED"
+            ],
+            "type": "string"
+          },
+          "validFrom": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "validUntil": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "allowCommercial",
+          "attributionText",
+          "id",
+          "licenseName",
+          "maxPublicWidth",
+          "notes",
+          "sourceName",
+          "sourceUrl",
+          "status",
+          "validFrom",
+          "validUntil"
+        ],
+        "type": "object"
+      },
+      "AdminSegmentationJob": {
+        "properties": {
+          "algorithmVersion": {
+            "nullable": true,
+            "type": "string"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentationCandidate"
+            },
+            "type": "array"
+          },
+          "completedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "failureCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "failureMessage": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "requestedBy": {
+            "type": "string"
+          },
+          "sourceAsset": {
+            "$ref": "#/components/schemas/AdminSourceAsset"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "PROCESSING",
+              "COMPLETED",
+              "FAILED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "algorithmVersion",
+          "candidates",
+          "completedAt",
+          "createdAt",
+          "failureCode",
+          "failureMessage",
+          "id",
+          "requestedBy",
+          "sourceAsset",
+          "startedAt",
+          "status"
+        ],
+        "type": "object"
+      },
+      "AdminSession": {
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresInSeconds": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "staff": {
+            "properties": {
+              "email": {
+                "format": "email",
+                "type": "string"
+              },
+              "roles": {
+                "items": {
+                  "enum": [
+                    "EDITOR",
+                    "REVIEWER",
+                    "RIGHTS",
+                    "ADMIN"
+                  ],
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "email",
+              "roles"
+            ],
+            "type": "object"
+          },
+          "tokenType": {
+            "enum": [
+              "Bearer"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessToken",
+          "expiresInSeconds",
+          "staff",
+          "tokenType"
+        ],
+        "type": "object"
+      },
+      "AdminSessionRequest": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "maxLength": 254,
+            "type": "string"
+          },
+          "password": {
+            "minLength": 1,
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object"
+      },
+      "AdminSourceAsset": {
+        "properties": {
+          "edition": {
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "work": {
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "name",
+              "work"
+            ],
+            "type": "object"
+          },
+          "height": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "pageLabel": {
+            "nullable": true,
+            "type": "string"
+          },
+          "width": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "edition",
+          "height",
+          "id",
+          "pageLabel",
+          "width"
+        ],
+        "type": "object"
+      },
+      "AdminWork": {
+        "properties": {
+          "calligrapher": {
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "isActive": {
+                "type": "boolean"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "isActive",
+              "name"
+            ],
+            "type": "object"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "dynasty": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "calligrapher",
+          "description",
+          "dynasty",
+          "id",
+          "isActive",
+          "title"
+        ],
+        "type": "object"
+      },
+      "AdviceReview": {
+        "properties": {
+          "comment": {
+            "type": "string"
+          },
+          "reviewedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "reviewerKey": {
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "APPROVED",
+              "NEEDS_ADJUSTMENT",
+              "NOT_APPLICABLE"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "comment",
+          "reviewedAt",
+          "reviewerKey",
+          "verdict"
+        ],
+        "type": "object"
+      },
+      "AdviceReviewRequest": {
+        "properties": {
+          "comment": {
+            "maxLength": 2000,
+            "minLength": 3,
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "APPROVED",
+              "NEEDS_ADJUSTMENT",
+              "NOT_APPLICABLE"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "comment",
+          "verdict"
+        ],
+        "type": "object"
+      },
+      "AdviceReviewResult": {
+        "properties": {
+          "attemptId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "REVIEWED"
+            ],
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "APPROVED",
+              "NEEDS_ADJUSTMENT",
+              "NOT_APPLICABLE"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "attemptId",
+          "status",
+          "verdict"
+        ],
+        "type": "object"
+      },
       "ArtworkAnalysis": {
         "properties": {
           "findings": {
@@ -263,6 +1292,18 @@
         ],
         "type": "object"
       },
+      "CompleteSourceUploadResult": {
+        "properties": {
+          "sourceAssetId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceAssetId"
+        ],
+        "type": "object"
+      },
       "CompleteUploadResult": {
         "properties": {
           "analysisId": {
@@ -292,6 +1333,155 @@
         ],
         "type": "object"
       },
+      "ContentHistoryChange": {
+        "properties": {
+          "after": {},
+          "before": {},
+          "field": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "after",
+          "before",
+          "field"
+        ],
+        "type": "object"
+      },
+      "ContentImportCommitResult": {
+        "properties": {
+          "batchId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "glyphCount": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "COMMITTED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "batchId",
+          "glyphCount",
+          "status"
+        ],
+        "type": "object"
+      },
+      "ContentImportPreviewRequest": {
+        "properties": {
+          "csvText": {
+            "maxLength": 2000000,
+            "type": "string"
+          },
+          "fileName": {
+            "maxLength": 255,
+            "pattern": "\\.csv$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "csvText",
+          "fileName"
+        ],
+        "type": "object"
+      },
+      "ContentImportRow": {
+        "properties": {
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "normalizedData": {
+            "additionalProperties": true,
+            "nullable": true,
+            "type": "object"
+          },
+          "rawData": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "rowNumber": {
+            "minimum": 2,
+            "type": "integer"
+          },
+          "targetGlyphId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "errors",
+          "normalizedData",
+          "rawData",
+          "rowNumber",
+          "targetGlyphId"
+        ],
+        "type": "object"
+      },
+      "CreateCalligrapherRequest": {
+        "properties": {
+          "biography": {
+            "nullable": true,
+            "type": "string"
+          },
+          "dynasty": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "dynasty",
+          "name"
+        ],
+        "type": "object"
+      },
+      "CreateEditionRequest": {
+        "properties": {
+          "holdingInstitution": {
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "publication": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceUrl": {
+            "format": "uri",
+            "nullable": true,
+            "type": "string"
+          },
+          "workId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "workId"
+        ],
+        "type": "object"
+      },
       "CreateFavoriteGroupRequest": {
         "properties": {
           "name": {
@@ -302,6 +1492,89 @@
         },
         "required": [
           "name"
+        ],
+        "type": "object"
+      },
+      "CreateGlyphRequest": {
+        "properties": {
+          "authenticityGrade": {
+            "enum": [
+              "A_ORIGINAL",
+              "B_RUBBING_OR_AUTHORIZED_EDITION",
+              "C_MODERN_COPY"
+            ],
+            "type": "string"
+          },
+          "bboxHeight": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "bboxWidth": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "bboxX": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "bboxY": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "beginnerWeight": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "canonicalCharacter": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "characterCandidates": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "imageQuality": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "observedCharacter": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "sourceAssetId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "transcription": {
+            "nullable": true,
+            "type": "string"
+          },
+          "variantType": {
+            "enum": [
+              "SIMPLIFIED",
+              "TRADITIONAL",
+              "HISTORICAL",
+              "COMPATIBILITY",
+              null
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "authenticityGrade",
+          "bboxHeight",
+          "bboxWidth",
+          "bboxX",
+          "bboxY",
+          "canonicalCharacter",
+          "observedCharacter",
+          "sourceAssetId"
         ],
         "type": "object"
       },
@@ -319,6 +1592,184 @@
         "required": [
           "artworkId",
           "glyphId"
+        ],
+        "type": "object"
+      },
+      "CreateRightsRequest": {
+        "properties": {
+          "allowCommercial": {
+            "type": "boolean"
+          },
+          "attributionText": {
+            "nullable": true,
+            "type": "string"
+          },
+          "licenseName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "maxPublicWidth": {
+            "minimum": 1,
+            "nullable": true,
+            "type": "integer"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceName": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "sourceUrl": {
+            "format": "uri",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "INTERNAL_TEST_ONLY",
+              "CLEARED_PUBLIC",
+              "RESTRICTED"
+            ],
+            "type": "string"
+          },
+          "validFrom": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "validUntil": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceName",
+          "status"
+        ],
+        "type": "object"
+      },
+      "CreateSegmentationJobResult": {
+        "properties": {
+          "created": {
+            "type": "boolean"
+          },
+          "jobId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "PROCESSING"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "created",
+          "jobId",
+          "status"
+        ],
+        "type": "object"
+      },
+      "CreateSourceUploadRequest": {
+        "properties": {
+          "checksumSha256": {
+            "pattern": "^[0-9a-fA-F]{64}$",
+            "type": "string"
+          },
+          "editionId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "height": {
+            "maximum": 30000,
+            "minimum": 512,
+            "type": "integer"
+          },
+          "mimeType": {
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "type": "string"
+          },
+          "pageLabel": {
+            "nullable": true,
+            "type": "string"
+          },
+          "rightsRecordId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "sizeBytes": {
+            "maximum": 52428800,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "width": {
+            "maximum": 30000,
+            "minimum": 512,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "checksumSha256",
+          "editionId",
+          "height",
+          "mimeType",
+          "rightsRecordId",
+          "sizeBytes",
+          "width"
+        ],
+        "type": "object"
+      },
+      "CreateSourceUploadResult": {
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "requiredHeaders": {
+            "properties": {
+              "content-type": {
+                "enum": [
+                  "image/jpeg",
+                  "image/png",
+                  "image/webp"
+                ],
+                "type": "string"
+              },
+              "x-amz-meta-sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "content-type",
+              "x-amz-meta-sha256"
+            ],
+            "type": "object"
+          },
+          "uploadId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "uploadUrl": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expiresAt",
+          "requiredHeaders",
+          "uploadId",
+          "uploadUrl"
         ],
         "type": "object"
       },
@@ -405,6 +1856,37 @@
           "uploadUrl"
         ],
         "type": "object"
+      },
+      "CreateWorkRequest": {
+        "properties": {
+          "calligrapherId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "dynasty": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "calligrapherId",
+          "dynasty",
+          "title"
+        ],
+        "type": "object"
+      },
+      "CsvDocument": {
+        "type": "string"
       },
       "DeleteFavoriteGroupResult": {
         "properties": {
@@ -667,6 +2149,63 @@
           "kind",
           "url",
           "width"
+        ],
+        "type": "object"
+      },
+      "GlyphMutationResult": {
+        "properties": {
+          "glyphId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PROCESSING",
+              "NEEDS_REVIEW",
+              "APPROVED",
+              "DRAFT",
+              "ARCHIVED",
+              "PUBLISHED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "glyphId",
+          "status"
+        ],
+        "type": "object"
+      },
+      "GlyphReviewRequest": {
+        "properties": {
+          "decision": {
+            "enum": [
+              "APPROVED",
+              "CHANGES_REQUESTED",
+              "REJECTED"
+            ],
+            "type": "string"
+          },
+          "note": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "type": "object"
+      },
+      "GlyphUnpublishRequest": {
+        "properties": {
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
         ],
         "type": "object"
       },
@@ -993,6 +2532,42 @@
         },
         "type": "object"
       },
+      "PrivateSourceView": {
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "height": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "mimeType": {
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "type": "string"
+          },
+          "url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "width": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expiresAt",
+          "height",
+          "mimeType",
+          "url",
+          "width"
+        ],
+        "type": "object"
+      },
       "ProductEventRequest": {
         "properties": {
           "eventId": {
@@ -1268,6 +2843,38 @@
         ],
         "type": "object"
       },
+      "RejectSegmentationCandidateRequest": {
+        "properties": {
+          "note": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "note"
+        ],
+        "type": "object"
+      },
+      "RejectSegmentationCandidateResult": {
+        "properties": {
+          "candidateId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "REJECTED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidateId",
+          "status"
+        ],
+        "type": "object"
+      },
       "ReorderRequest": {
         "properties": {
           "direction": {
@@ -1302,6 +2909,25 @@
         ],
         "type": "object"
       },
+      "RestoredAdminContent": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/AdminCalligrapher"
+          },
+          {
+            "$ref": "#/components/schemas/AdminWork"
+          },
+          {
+            "$ref": "#/components/schemas/AdminEdition"
+          },
+          {
+            "$ref": "#/components/schemas/AdminRights"
+          },
+          {
+            "$ref": "#/components/schemas/GlyphMutationResult"
+          }
+        ]
+      },
       "RevokeSessionResult": {
         "properties": {
           "revoked": {
@@ -1326,6 +2952,75 @@
         "required": [
           "revoked",
           "shareId"
+        ],
+        "type": "object"
+      },
+      "SegmentationCandidate": {
+        "properties": {
+          "annotatedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "annotatedBy": {
+            "nullable": true,
+            "type": "string"
+          },
+          "bboxHeight": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "bboxWidth": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "bboxX": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "bboxY": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "confidence": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "glyphId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "rejectionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sortOrder": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "annotatedAt",
+          "annotatedBy",
+          "bboxHeight",
+          "bboxWidth",
+          "bboxX",
+          "bboxY",
+          "confidence",
+          "glyphId",
+          "id",
+          "rejectionNote",
+          "sortOrder",
+          "status"
         ],
         "type": "object"
       },
@@ -1661,6 +3356,56 @@
         ],
         "type": "object"
       },
+      "UpdateCalligrapherRequest": {
+        "minProperties": 1,
+        "properties": {
+          "biography": {
+            "nullable": true,
+            "type": "string"
+          },
+          "dynasty": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "UpdateEditionRequest": {
+        "minProperties": 1,
+        "properties": {
+          "holdingInstitution": {
+            "nullable": true,
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "publication": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceUrl": {
+            "format": "uri",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "UpdateFavoriteGroupRequest": {
         "properties": {
           "name": {
@@ -1688,6 +3433,153 @@
           "id",
           "name"
         ],
+        "type": "object"
+      },
+      "UpdateGlyphRequest": {
+        "minProperties": 1,
+        "properties": {
+          "authenticityGrade": {
+            "enum": [
+              "A_ORIGINAL",
+              "B_RUBBING_OR_AUTHORIZED_EDITION",
+              "C_MODERN_COPY"
+            ],
+            "type": "string"
+          },
+          "bboxHeight": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "bboxWidth": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "bboxX": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "bboxY": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "beginnerWeight": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "canonicalCharacter": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "characterCandidates": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "imageQuality": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "observedCharacter": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "transcription": {
+            "nullable": true,
+            "type": "string"
+          },
+          "variantType": {
+            "enum": [
+              "SIMPLIFIED",
+              "TRADITIONAL",
+              "HISTORICAL",
+              "COMPATIBILITY",
+              null
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "UpdateRightsRequest": {
+        "minProperties": 1,
+        "properties": {
+          "allowCommercial": {
+            "type": "boolean"
+          },
+          "attributionText": {
+            "nullable": true,
+            "type": "string"
+          },
+          "licenseName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "maxPublicWidth": {
+            "minimum": 1,
+            "nullable": true,
+            "type": "integer"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceName": {
+            "type": "string"
+          },
+          "sourceUrl": {
+            "format": "uri",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "UNKNOWN",
+              "INTERNAL_TEST_ONLY",
+              "CLEARED_PUBLIC",
+              "RESTRICTED",
+              "EXPIRED"
+            ],
+            "type": "string"
+          },
+          "validFrom": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "validUntil": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "UpdateWorkRequest": {
+        "minProperties": 1,
+        "properties": {
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "dynasty": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "UserFeedbackTicket": {
@@ -1806,46 +3698,148 @@
     "/api/v1/admin/advice-reviews": {
       "get": {
         "operationId": "AdminInsightsController_listAdviceSamples",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "ALL",
+                "REVIEWED",
+                "UNREVIEWED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminAdviceSample"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "抽取有建议快照的练习样本供教师复核",
         "tags": [
           "admin-insights"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/advice-reviews/{attemptId}": {
       "patch": {
         "operationId": "AdminInsightsController_reviewAdvice",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "attemptId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdviceReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdviceReviewResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "记录教师对结构建议的抽检结论与意见",
         "tags": [
           "admin-insights"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/analytics/funnel": {
       "get": {
         "operationId": "AdminInsightsController_funnel",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminFunnelReport"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "按时间窗统计完整练习闭环关键漏斗",
         "tags": [
           "admin-insights"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/calligraphers": {
@@ -1854,40 +3848,113 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminCalligrapher"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "查看书家主数据",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       },
       "post": {
         "operationId": "ContentAdminController_createCalligrapher",
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalligrapherRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCalligrapher"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "创建书家主数据并记录审计",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/calligraphers/{calligrapherId}": {
       "patch": {
         "operationId": "ContentAdminController_updateCalligrapher",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "calligrapherId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCalligrapherRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCalligrapher"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/editions": {
@@ -1896,39 +3963,112 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminEdition"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       },
       "post": {
         "operationId": "ContentAdminController_createEdition",
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEditionRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminEdition"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "创建作品版本并记录审计",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/editions/{editionId}": {
       "patch": {
         "operationId": "ContentAdminController_updateEdition",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "editionId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEditionRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminEdition"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/glyphs": {
@@ -1937,113 +4077,344 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminGlyph"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       },
       "post": {
         "operationId": "ContentAdminController_createGlyph",
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGlyphRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlyphMutationResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "登记单字框并提交公开裁切任务",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/glyphs/{glyphId}": {
       "patch": {
         "operationId": "ContentAdminController_updateGlyph",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "glyphId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGlyphRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlyphMutationResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "纠正未发布单字并使既有审核失效",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/glyphs/{glyphId}/publish": {
       "post": {
         "operationId": "ContentAdminController_publishGlyph",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "glyphId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlyphMutationResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "在来源、权利、图片和审核均合格后发布单字",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/glyphs/{glyphId}/reviews": {
       "post": {
         "operationId": "ContentAdminController_reviewGlyph",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "glyphId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlyphReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlyphMutationResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "以独立审核角色复核单字",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/glyphs/{glyphId}/unpublish": {
       "post": {
         "operationId": "ContentAdminController_unpublishGlyph",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "glyphId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlyphUnpublishRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlyphMutationResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "立即下架已发布单字并记录原因",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/history": {
       "get": {
         "operationId": "ContentAdminController_listContentHistory",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "entityType",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Calligrapher",
+                "Work",
+                "WorkEdition",
+                "RightsRecord",
+                "Glyph"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "format": "uuid",
+            "in": "query",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminContentHistoryEntry"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/history/{auditId}/restore": {
       "post": {
         "operationId": "ContentAdminController_restoreContentHistory",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "auditId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestoredAdminContent"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/import-batches": {
@@ -2052,40 +4423,103 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminContentImportBatch"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/import-batches/{batchId}/commit": {
       "post": {
         "operationId": "ContentAdminController_commitContentImport",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "batchId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentImportCommitResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/import-batches/preview": {
       "post": {
         "operationId": "ContentAdminController_previewContentImport",
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContentImportPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminContentImportBatch"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/import-template": {
@@ -2094,12 +4528,25 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/CsvDocument"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/rights": {
@@ -2108,67 +4555,208 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminRights"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       },
       "post": {
         "operationId": "ContentAdminController_createRights",
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRightsRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRights"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "创建权利记录并记录审计",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/rights/{rightsId}": {
       "patch": {
         "operationId": "ContentAdminController_updateRights",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "rightsId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRightsRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRights"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/segmentation-candidates/{candidateId}/accept": {
       "post": {
         "operationId": "ContentAdminController_acceptSegmentationCandidate",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "candidateId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptSegmentationCandidateRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlyphMutationResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/segmentation-candidates/{candidateId}/reject": {
       "post": {
         "operationId": "ContentAdminController_rejectSegmentationCandidate",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "candidateId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectSegmentationCandidateRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejectSegmentationCandidateResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/segmentation-jobs": {
@@ -2177,12 +4765,28 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminSegmentationJob"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/source-assets": {
@@ -2191,70 +4795,181 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminSourceAsset"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/source-assets/{sourceAssetId}/segmentation-jobs": {
       "post": {
         "operationId": "ContentAdminController_createSegmentationJob",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "sourceAssetId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSegmentationJobResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/source-assets/{sourceAssetId}/view": {
       "get": {
         "operationId": "ContentAdminController_createSourceAssetView",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "sourceAssetId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivateSourceView"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/source-uploads": {
       "post": {
         "operationId": "ContentAdminController_createSourceUpload",
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSourceUploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSourceUploadResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "创建带大小、格式和校验值约束的原帖直传",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/source-uploads/{uploadId}/complete": {
       "post": {
         "operationId": "ContentAdminController_completeSourceUpload",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "uploadId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteSourceUploadResult"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "核验原帖直传并创建不可变来源资产",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/works": {
@@ -2263,85 +4978,254 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminWork"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "查看作品主数据",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       },
       "post": {
         "operationId": "ContentAdminController_createWork",
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminWork"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "创建碑帖作品并记录审计",
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/content/works/{workId}": {
       "patch": {
         "operationId": "ContentAdminController_updateWork",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "workId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminWork"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "admin-content"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/feedback": {
       "get": {
         "operationId": "AdminFeedbackController_list",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "kind",
+            "schema": {
+              "enum": [
+                "STRUCTURE_ADVICE",
+                "RECOGNITION_ERROR",
+                "QUALITY_RESULT",
+                "CONTENT_ERROR",
+                "PRODUCT"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "OPEN",
+                "IN_PROGRESS",
+                "RESOLVED",
+                "DISMISSED"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminFeedbackTicket"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "按类型和状态查看用户反馈工单",
         "tags": [
           "admin-feedback"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/feedback/{feedbackId}": {
       "patch": {
         "operationId": "AdminFeedbackController_update",
-        "parameters": [],
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "path",
+            "name": "feedbackId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminFeedbackUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminFeedbackTicket"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "分派、更新或关闭反馈工单",
         "tags": [
           "admin-feedback"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/admin/session": {
       "post": {
         "operationId": "AdminSessionController_createSession",
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": ""
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminSession"
+                }
+              }
+            },
+            "description": "管理后台操作成功。"
           }
         },
         "summary": "登录内容管理后台",
         "tags": [
           "admin"
-        ]
+        ],
+        "x-client-contract": true
       }
     },
     "/api/v1/artwork-deletions/{deletionId}": {

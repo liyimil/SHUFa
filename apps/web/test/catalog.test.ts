@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  apiRequestIdHint,
+  readApiClientError,
+} from "@calligraphy/api-contract";
+
+import {
   buildCatalogUrl,
   buildGlyphDetailUrl,
   normalizeHanQuery,
@@ -44,5 +49,24 @@ describe("catalog query helpers", () => {
     assert.equal(hasValidBearerToken(`Bearer ${token}`, token), true);
     assert.equal(hasValidBearerToken("Bearer wrong", token), false);
     assert.equal(hasValidBearerToken(`Basic ${token}`, token), false);
+  });
+
+  it("exposes only validated request ids on public error pages", async () => {
+    const safe = await readApiClientError(
+      Response.json(
+        { message: "内部服务失败。" },
+        { headers: { "X-Request-Id": "web-request-789" }, status: 503 },
+      ),
+    );
+    assert.equal(apiRequestIdHint(safe), "追踪 ID：web-request-789");
+
+    const unsafe = await readApiClientError(
+      Response.json(
+        { message: "内部服务失败。" },
+        { headers: { "X-Request-Id": "not/a/safe/id" }, status: 503 },
+      ),
+    );
+    assert.equal(apiRequestIdHint(unsafe), null);
+    assert.doesNotMatch(unsafe.message, /not\/a\/safe\/id/);
   });
 });

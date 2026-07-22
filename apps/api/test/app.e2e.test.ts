@@ -8,6 +8,10 @@ import request from "supertest";
 
 import { AppModule } from "../src/app.module.js";
 import {
+  corsConfiguration,
+  requestMetadataMiddleware,
+} from "../src/http-boundary.js";
+import {
   ARTWORK_DELETION_QUEUE,
   type ArtworkDeletionJob,
   type ArtworkDeletionQueue,
@@ -385,6 +389,8 @@ describe("application HTTP boundary", () => {
       .compile();
 
     app = module.createNestApplication();
+    app.use(requestMetadataMiddleware);
+    app.enableCors(corsConfiguration());
     app.setGlobalPrefix("api/v1");
     await app.init();
   });
@@ -401,10 +407,17 @@ describe("application HTTP boundary", () => {
   it("serves health status", async () => {
     const response = await request(app.getHttpServer())
       .get("/api/v1/health")
+      .set("Origin", "http://localhost:3000")
+      .set("X-Request-Id", "test-request-123")
       .expect(200);
 
     assert.equal(response.body.service, "api");
     assert.equal(response.body.status, "ok");
+    assert.equal(response.headers["x-request-id"], "test-request-123");
+    assert.match(
+      response.headers["access-control-expose-headers"] ?? "",
+      /X-Request-Id/i,
+    );
   });
 
   it("serves a validated empty catalog result", async () => {

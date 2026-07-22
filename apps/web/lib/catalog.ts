@@ -1,4 +1,4 @@
-import type { operations } from "@calligraphy/api-contract";
+import { readApiClientError, type operations } from "@calligraphy/api-contract";
 
 import { publicCatalogCacheTag } from "./catalog-cache";
 
@@ -108,7 +108,7 @@ export async function fetchCatalog(
   });
 
   if (!response.ok) {
-    throw new Error(`Catalog request failed with status ${response.status}.`);
+    throw await readApiClientError(response, "范字目录请求失败");
   }
 
   const payload = (await response.json()) as ContractCatalogResult;
@@ -124,7 +124,7 @@ export async function fetchGlyphDetail(
   });
   if (response.status === 404) return null;
   if (!response.ok) {
-    throw new Error(`Glyph request failed with status ${response.status}.`);
+    throw await readApiClientError(response, "范字详情请求失败");
   }
   const payload = (await response.json()) as ContractGlyphDetail;
   return payload;

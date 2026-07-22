@@ -35,6 +35,9 @@ importers:
 
   apps/admin:
     dependencies:
+      '@calligraphy/api-contract':
+        specifier: workspace:*
+        version: link:../../packages/api-contract
       next:
         specifier: 16.2.10
         version: 16.2.10(@babel/core@7.29.7)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)

@@ -44,8 +44,9 @@ export async function fetchPublicShare(
     cache: "no-store",
   });
   if (response.status === 404) return null;
-  if (!response.ok)
-    throw new Error(`Share request failed (${response.status}).`);
+  if (!response.ok) {
+    throw await readApiClientError(response, "练习分享请求失败");
+  }
   return (await response.json()) as PublicPracticeShare;
 }
 
@@ -57,7 +58,9 @@ export async function fetchPublicShareSummary(
     cache: "no-store",
   });
   if (response.status === 404) return null;
-  if (!response.ok)
-    throw new Error(`Share summary request failed (${response.status}).`);
+  if (!response.ok) {
+    throw await readApiClientError(response, "分享摘要请求失败");
+  }
   return (await response.json()) as PublicShareSummary;
 }
+import { readApiClientError } from "@calligraphy/api-contract";

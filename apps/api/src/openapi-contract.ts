@@ -1,5 +1,10 @@
 import type { OpenAPIObject } from "@nestjs/swagger";
 
+import {
+  adminContractSchemas,
+  adminOperationContracts,
+} from "./admin-openapi-contract.js";
+
 type SchemaObject = NonNullable<
   NonNullable<OpenAPIObject["components"]>["schemas"]
 >[string];
@@ -960,6 +965,34 @@ function setPathParameter(
   }
 }
 
+function setOperationParameter(
+  operation: JsonOperation,
+  parameter: {
+    format?: string;
+    in: "path" | "query";
+    name: string;
+    required?: boolean;
+    schema?: Record<string, unknown>;
+  },
+): void {
+  const schema = parameter.schema ?? {
+    ...(parameter.format ? { format: parameter.format } : {}),
+    type: "string",
+  };
+  let matched = false;
+  operation.parameters = (operation.parameters ?? []).map((current) =>
+    current &&
+    typeof current === "object" &&
+    "name" in current &&
+    current.name === parameter.name &&
+    "in" in current &&
+    current.in === parameter.in
+      ? ((matched = true), { ...current, ...parameter, schema })
+      : current,
+  );
+  if (!matched) operation.parameters.push({ ...parameter, schema });
+}
+
 export const typedClientOperationIds = [
   "IdentityController_createAnonymousSession",
   "IdentityController_createRefreshableSession",
@@ -996,6 +1029,7 @@ export const typedClientOperationIds = [
   "FeedbackController_list",
   "PublicShareController_getShare",
   "PublicShareController_getShareSummary",
+  ...adminOperationContracts.map(({ operationId }) => operationId),
 ] as const;
 
 export function enhanceOpenApiDocument(document: OpenAPIObject): OpenAPIObject {
@@ -1003,6 +1037,7 @@ export function enhanceOpenApiDocument(document: OpenAPIObject): OpenAPIObject {
   document.components.schemas = {
     ...(document.components.schemas ?? {}),
     ...schemas,
+    ...adminContractSchemas,
   };
 
   for (const id of [
@@ -1297,6 +1332,35 @@ export function enhanceOpenApiDocument(document: OpenAPIObject): OpenAPIObject {
       type: "string",
     });
     setJsonResponse(operation, 200, schemaName, description);
+  }
+
+  for (const contract of adminOperationContracts) {
+    const operation = findOperation(document, contract.operationId);
+    if (contract.secured) operation.security = [{ bearer: [] }];
+    for (const parameter of contract.parameters ?? []) {
+      setOperationParameter(operation, parameter);
+    }
+    if (contract.requestSchema) {
+      setJsonRequest(operation, contract.requestSchema);
+    }
+    operation.responses ??= {};
+    operation.responses[String(contract.responseStatus)] = {
+      content: {
+        [contract.contentType ?? "application/json"]: {
+          schema: contract.arrayResponse
+            ? {
+                items: {
+                  $ref: `#/components/schemas/${contract.responseSchema}`,
+                },
+                type: "array",
+              }
+            : {
+                $ref: `#/components/schemas/${contract.responseSchema}`,
+              },
+        },
+      },
+      description: "管理后台操作成功。",
+    };
   }
   for (const operationId of typedClientOperationIds) {
     findOperation(document, operationId)["x-client-contract"] = true;

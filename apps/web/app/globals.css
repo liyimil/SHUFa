@@ -272,6 +272,13 @@ h1 {
   padding: 20px;
 }
 
+.request-id {
+  color: #6b6258;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
 .attempt-grid {
   display: grid;
   gap: 20px;

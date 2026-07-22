@@ -1,6 +1,6 @@
 # AI 辅助书法学习产品：完整 AI 交接文档
 
-> 交接版本：2026-07-19  
+> 交接版本：2026-07-22
 > 仓库路径：`C:\Users\asus\Desktop\github\书法`  
 > 当前目标：完成《AI辅助书法学习产品-实施目标与任务拆解》中的阶段 0 技术验证和阶段 1 MVP  
 > 当前结论：核心工程闭环已实现并可本地构建；完整验收和公开上线尚未完成  
@@ -16,9 +16,9 @@
 2. “识别”目前依靠用户手动确认；没有毛笔字 Top-K 模型，不能声称识别已完成。
 3. 目录、后台和权利门禁齐全，但仓库不含真实授权名家字库，不能把示例或任意网络图片当真迹。
 4. Compose、迁移、Dockerfile 和运维手册已存在，但本机没有 Docker，真实 PostgreSQL/Redis/MinIO/Staging 链路没有验收。
-5. Git 目录存在，但 `main` 没有任何提交；所有项目尚未形成可回退的版本基线。
+5. Git 基线已提交并推送到 `liyimil/SHUFa` 的 `main`；继续开发前应从最新远端提交创建功能分支。
 
-下一位 AI 的默认起点是完成 M2-14：补齐剩余 38 个管理端 OpenAPI 契约，让 Admin 使用生成类型。不要先做大规模重构。
+M2-14 和三端错误追踪展示已完成。下一位 AI 的默认起点是实现 App 离线草稿或 Web 浏览器 E2E；不要先做大规模重构。
 
 ## 1. 产品目标与不能改变的边界
 
@@ -60,17 +60,17 @@
 
 ## 3. 仓库结构与职责
 
-| 路径                     | 技术                                        | 职责                                                                       | 当前状态                                                     |
-| ------------------------ | ------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `apps/mobile`            | Expo 57、React Native 0.86                  | 拍照、上传、确认、查字、对比、建议、再练、历史、收藏、分享、反馈、删除     | 核心工程流程已实现；无 Top-K、离线草稿和真机验收             |
-| `apps/web`               | Next.js 16、React 19                        | 公开查字、范字详情、分享页、OG/Metadata/JSON-LD                            | 功能和模块测试已完成；缺浏览器 E2E、性能与真实 CDN 验收      |
-| `apps/admin`             | Next.js 16、React 19                        | 内容录入、权利、原图、预切分、框选、标注、导入、审核、发布、反馈、教师抽检 | 工程功能已实现；OpenAPI 生成类型尚未接入，缺真实内容操作验收 |
-| `apps/api`               | NestJS 11、Prisma 7、PostgreSQL             | 模块化单体业务事实和权限边界                                               | 143 项测试通过；22 组迁移；真实数据库未迁移验收              |
-| `apps/worker`            | Node 24、BullMQ、AWS S3 SDK                 | 质量、裁切、预切分、结构分析和物理删除任务                                 | 12 项测试通过；真实 Redis/S3/AI 跨服务未验证                 |
-| `apps/ai-service`        | Python 3.12、FastAPI、OpenCV、NumPy、Pillow | 图片质量、裁切、预切分、归一化和几何结构比较                               | 12 项 pytest；没有 Top-K 模型和正式固定评测集                |
-| `packages/api-contract`  | OpenAPI、openapi-typescript                 | 稳定 OpenAPI 和跨客户端类型                                                | 73 个操作追踪，35 个具体强类型操作，6 项测试                 |
-| `packages/observability` | TypeScript                                  | API/Worker 共用路径和诊断脱敏                                              | 3 项测试通过                                                 |
-| `packages/domain-types`  | TypeScript                                  | 平台无关领域类型占位包                                                     | 可构建；暂无运行时测试和大规模复用                           |
+| 路径                     | 技术                                        | 职责                                                                       | 当前状态                                                |
+| ------------------------ | ------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `apps/mobile`            | Expo 57、React Native 0.86                  | 拍照、上传、确认、查字、对比、建议、再练、历史、收藏、分享、反馈、删除     | 核心工程流程已实现；无 Top-K、离线草稿和真机验收        |
+| `apps/web`               | Next.js 16、React 19                        | 公开查字、范字详情、分享页、OG/Metadata/JSON-LD                            | 功能和模块测试已完成；缺浏览器 E2E、性能与真实 CDN 验收 |
+| `apps/admin`             | Next.js 16、React 19                        | 内容录入、权利、原图、预切分、框选、标注、导入、审核、发布、反馈、教师抽检 | 工程功能和生成类型已接入；缺真实内容操作验收            |
+| `apps/api`               | NestJS 11、Prisma 7、PostgreSQL             | 模块化单体业务事实和权限边界                                               | 143 项测试通过；22 组迁移；真实数据库未迁移验收         |
+| `apps/worker`            | Node 24、BullMQ、AWS S3 SDK                 | 质量、裁切、预切分、结构分析和物理删除任务                                 | 12 项测试通过；真实 Redis/S3/AI 跨服务未验证            |
+| `apps/ai-service`        | Python 3.12、FastAPI、OpenCV、NumPy、Pillow | 图片质量、裁切、预切分、归一化和几何结构比较                               | 12 项 pytest；没有 Top-K 模型和正式固定评测集           |
+| `packages/api-contract`  | OpenAPI、openapi-typescript                 | 稳定 OpenAPI 和跨客户端类型                                                | 73/73 个操作强类型，8 项契约测试                        |
+| `packages/observability` | TypeScript                                  | API/Worker 共用路径和诊断脱敏                                              | 3 项测试通过                                            |
+| `packages/domain-types`  | TypeScript                                  | 平台无关领域类型占位包                                                     | 可构建；暂无运行时测试和大规模复用                      |
 
 主要版本：Node 24、pnpm 11.9、TypeScript 5.9、Next 16.2、React 19.2、NestJS 11.1、Prisma 7.8、Expo 57、React Native 0.86、Python 3.12。
 
@@ -169,26 +169,26 @@ AI 当前没有 `/recognition` 或 Top-K 接口。`glyph-normalization-v1` 保�
 - `apps/api/src/openapi-contract.ts` 在 Nest 路由扫描上补充真实 Schema。
 - `apps/api/scripts/generate-openapi.mts` 稳定排序并写 `packages/api-contract/openapi.json`。
 - `openapi-typescript` 生成 `packages/api-contract/src/generated.ts`。
-- 已结构化 35/73：身份、目录、上传、质检、隐私、练习、收藏、分享、删除、反馈、埋点和健康。
-- 未结构化 38/73：`ContentAdminController` 32、`AdminInsightsController` 3、`AdminFeedbackController` 2、`AdminSessionController` 1。
+- 已结构化 73/73：身份、目录、上传、质检、隐私、练习、收藏、分享、删除、反馈、埋点、健康和全部管理端操作。
+- 管理端 38 个操作均具有请求/响应、鉴权、UUID/查询参数和 CSV 契约。
 - Mobile 已消费身份、上传、质检、隐私、练习、收藏、删除、反馈和事件类型；Web 已消费目录类型。
-- Admin 仍维护 `apps/admin/lib/api.ts` 手写类型，是下一批迁移对象。
+- Admin 的响应、教师抽检和反馈请求已消费 `@calligraphy/api-contract` 生成类型。
 
 ## 5. 当前验证基线
 
-最近一次本地全量验证：2026-07-18。结果：
+最近一次已记录的全量验证：2026-07-18；契约专项验证更新于 2026-07-22。结果：
 
-| 范围          | 结果                                                            |
-| ------------- | --------------------------------------------------------------- |
-| API           | 143/143 Node 测试；类型和生产构建通过                           |
-| API 契约      | 6/6；73 个操作唯一，35 个标记操作均有 JSON Schema，漂移检查通过 |
-| Worker        | 12/12；生产构建通过                                             |
-| Mobile        | 23/23；类型检查和 Expo Android 静态导出通过                     |
-| Web           | 11/11；Next.js standalone 构建通过                              |
-| Admin         | 10/10；Next.js standalone 构建通过                              |
-| AI            | 12 项 pytest；Ruff 和 FastAPI 边界通过                          |
-| Observability | 3/3 脱敏测试                                                    |
-| 全仓          | Prettier、ESLint、Turbo 类型/测试/构建通过                      |
+| 范围          | 结果                                                                     |
+| ------------- | ------------------------------------------------------------------------ |
+| API           | 143/143 Node 测试；类型和生产构建通过                                    |
+| API 契约      | 8/8；73 个操作均标记且有响应 Schema，后台鉴权、请求、参数与 CSV 契约通过 |
+| Worker        | 12/12；生产构建通过                                                      |
+| Mobile        | 24/24；类型检查和 Expo Android 静态导出通过                              |
+| Web           | 12/12；Next.js standalone 构建通过                                       |
+| Admin         | 11/11；Next.js standalone 构建通过                                       |
+| AI            | 12 项 pytest；Ruff 和 FastAPI 边界通过                                   |
+| Observability | 3/3 脱敏测试                                                             |
+| 全仓          | Prettier、ESLint、Turbo 类型/测试/构建通过                               |
 
 已知测试现象：一次全仓运行中 `apps/api/test/app.e2e.test.ts` 子进程整体退出但没有失败断言；单独运行 17/17，通过再次执行全仓测试后 API 143/143。若复现，优先检查 Node 测试并发、资源和子进程退出原因，不要直接放宽业务断言。
 
@@ -371,9 +371,8 @@ WEB_CACHE_INVALIDATION_URL
 
 ## 9. Git、生成文件和工作区注意事项
 
-- `.git` 存在，当前分支 `main`，但没有任何提交。
-- `git status --short` 显示整个项目为未跟踪；不要直接 `git add -A`。
-- 建立首个提交前检查 `.env`、`.venv`、`node_modules`、`.next`、`dist`、`.turbo`、临时 deploy 目录、Prisma 生成文件和真实图片是否被 `.gitignore` 覆盖。
+- `.git` 已建立 `main` 基线并推送到 `https://github.com/liyimil/SHUFa.git`；新功能遵循 `CONTRIBUTING.md` 从最新 `main` 创建分支。
+- 提交前仍须检查 `.env`、`.venv`、`node_modules`、`.next`、`dist`、`.turbo`、临时 deploy 目录、Prisma 生成文件和真实图片是否被 `.gitignore` 覆盖。
 - 当前存在 `.tmp-api-deploy`、`.tmp-worker-deploy`、`.ruff_cache`、`.turbo` 等本地产物；不要把它们当源码。
 - `packages/api-contract/openapi.json` 和 `packages/api-contract/src/generated.ts` 是受版本控制的生成制品，不得手工修改或用 Prettier 改格式。
 - 修改 API 契约后运行 `pnpm contract:generate`，再运行 `pnpm contract:check`。
@@ -381,33 +380,15 @@ WEB_CACHE_INVALIDATION_URL
 
 ## 10. 下一位 AI 的明确实施顺序
 
-### 10.1 第一批：完成 M2-14
+### 10.1 第一批：客户端可靠性
 
-剩余 38 个操作分类：
-
-1. `AdminSessionController` 1 个：后台登录请求和令牌/角色响应。
-2. `AdminFeedbackController` 2 个：查询过滤和处理更新。
-3. `AdminInsightsController` 3 个：教师样本、意见、漏斗和查询参数。
-4. `ContentAdminController` 32 个：主数据、权利、Glyph、原图、预切分、导入、审核、发布、下架和历史。
-
-每完成一组必须：
-
-- 从 Controller → Service → Repository 的真实输入和返回形状推导 Schema。
-- 核对 Nest 实际 HTTP 状态码；POST 默认通常是 201。
-- 补后台 Bearer 鉴权、UUID 路径参数、查询参数和文件/CSV 响应。
-- 加入 `typedClientOperationIds`，生成后应带 `x-client-contract: true`。
-- 让 `apps/admin/lib/api.ts` 逐组消费 `@calligraphy/api-contract` 类型。
-- 扩展 `packages/api-contract/test/contract.test.mjs`，不要只改预期数量。
-- 运行 API/契约/Admin 类型和测试，再跑全仓门禁。
-- 达到 73/73 后更新 ADR-0008、`PROJECT_STATUS.md`、`TASK_CHECKLIST.md`；此时才可判定 M2-14 工程完成。
+- 补 App 未提交图片/裁切草稿持久化和弱网恢复。
+- 补 App 内精确单字框选/方向修正，避免只依赖系统 `allowsEditing`。
+- 为公开 Web 引入浏览器 E2E，覆盖查字、筛选、详情、分享和撤销失效。
 
 ### 10.2 第二批：工程可交接质量
 
-- 确认 `.gitignore` 和敏感数据后，由用户授权建立首个 Git 基线提交。
-- 为公开 Web 引入浏览器 E2E，覆盖查字、筛选、详情、分享和撤销失效。
-- 补 App 未提交图片/裁切草稿持久化和弱网恢复。
-- 补 App 内精确单字框选/方向修正，避免只依赖系统 `allowsEditing`。
-- 为客户端统一解析 API 错误码和 `X-Request-Id`，显示可提供给客服的追踪 ID。
+- 按 `CONTRIBUTING.md` 在功能分支提交并通过 PR 评审。
 - 为 AI 日志接入来自 Worker/API 的关联 ID。
 
 ### 10.3 第三批：有 Docker/云资源后
@@ -461,6 +442,6 @@ WEB_CACHE_INVALIDATION_URL
 - 如何配置、生成契约、运行测试和启动服务。
 - 哪些配置已有模板，哪些必须由用户/云平台/专业人员提供。
 - 为什么当前不能公开上线。
-- 下一步为何是 38 个管理端 OpenAPI 契约，而不是重构或换技术栈。
+- 下一步为何是离线草稿或 Web E2E，而不是重构或换技术栈。
 
 如果以上任何一点仍不清楚，先查本文列出的权威文件和代码，不要猜测。

@@ -1,3 +1,4 @@
+import { apiRequestIdHint } from "@calligraphy/api-contract";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -51,10 +52,12 @@ export default async function SharePage({ params }: SharePageProps) {
   const { token } = await params;
   let share = null;
   let unavailable = false;
+  let requestIdHint: string | null = null;
   try {
     share = await fetchPublicShare(token);
-  } catch {
+  } catch (error: unknown) {
     unavailable = true;
+    requestIdHint = apiRequestIdHint(error);
   }
 
   if (!share) {
@@ -67,6 +70,7 @@ export default async function SharePage({ params }: SharePageProps) {
             ? "服务暂时不可用，请稍后重试。"
             : "该分享已过期、被撤销或不存在。"}
         </p>
+        {requestIdHint ? <p className="request-id">{requestIdHint}</p> : null}
         <Link className="back-link" href="/">
           去查一个字
         </Link>

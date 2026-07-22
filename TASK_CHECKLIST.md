@@ -41,11 +41,11 @@
 
 ## M2：工程基础设施
 
-- [ ] **M2-01 初始化 Git 与 Monorepo — 部分**：pnpm Workspace/Turborepo 可运行，但 `main` 没有任何提交，全部项目尚未形成 Git 基线。
+- [x] **M2-01 初始化 Git 与 Monorepo**：pnpm Workspace/Turborepo 可运行，`main` 已建立并推送 Git 基线。
 - [x] **M2-02 创建六个应用骨架**：mobile、web、admin、api、worker、ai-service 均有可构建入口或健康边界。
 - [x] **M2-03 TypeScript 严格模式、ESLint、Prettier**：根命令和 CI 均通过。
 - [ ] **M2-04 Python 依赖锁、Ruff、类型检查和 pytest — 部分**：`pyproject.toml`、Ruff 和 pytest 可用；没有独立 Python 锁文件和静态类型检查器。
-- [ ] **M2-05 提交、分支和代码评审约定 — 未完成**：没有首个提交，也没有完整分支/PR 规范。
+- [x] **M2-05 提交、分支和代码评审约定**：`CONTRIBUTING.md` 已定义分支、提交、PR、评审、质量门禁和内容/AI 边界。
 - [x] **M2-06 ADR、API 和运维文档目录**：`docs/decisions`、OpenAPI、内容导入及运维手册已存在。
 - [ ] **M2-07 本地 PostgreSQL 18 容器 — 部分**：Compose 已定义健康检查和持久卷；当前机器无 Docker，未启动和迁移验证。
 - [ ] **M2-08 本地 Redis 容器 — 部分**：Compose 已定义 AOF 和健康检查；未做真实队列连接测试。
@@ -54,7 +54,7 @@
 - [ ] **M2-11 Docker 开发和生产镜像 — 部分**：API、Worker、AI、Web、Admin 五个 Dockerfile 和 CI 构建任务已定义；本机未实际构建镜像。
 - [ ] **M2-12 数据库迁移基线 — 部分**：Prisma schema 和 22 组迁移可生成/验证；未在空 PostgreSQL 实例执行 `migrate deploy`。
 - [x] **M2-13 CI 静态检查与单元测试**：GitHub Actions 包含格式、Lint、契约、类型、测试、构建和镜像矩阵。
-- [ ] **M2-14 OpenAPI 生成与契约差异检查 — 部分**：73 个操作被追踪，35 个 App/公开操作强类型化；38 个管理端操作仍无具体 Schema，Admin 尚未消费生成类型。
+- [x] **M2-14 OpenAPI 生成与契约差异检查**：73/73 个操作均有请求/响应、参数、鉴权和生成类型覆盖；Admin 已消费共享生成类型，CI 执行契约漂移检查。
 - [ ] **M2-15 镜像构建与制品命名 — 部分**：CI 以 `${github.sha}` 命名镜像；尚无真实 Registry 制品、签名或保留策略。
 - [ ] **M2-16 结构化日志与追踪 ID — 部分**：API/Worker 有结构化日志、请求/任务 ID 和共享脱敏；AI 服务尚未完整接入跨服务关联 ID。
 - [ ] **M2-17 Staging 初始部署 — 未完成**：无 Staging、域名或 HTTPS 环境。
@@ -114,7 +114,7 @@
 
 - [x] **M6-01 App 导航和设计令牌**：首页、查字、练习历史、收藏和隐私/反馈入口已接通。
 - [x] **M6-02 登录与匿名体验策略**：匿名会话、SecureStore 恢复、Refresh 轮换和旧令牌升级已实现。
-- [ ] **M6-03 API 客户端与错误处理 — 部分**：核心接口和部分生成类型已接入，重试/状态错误可展示；OpenAPI 尚非 73/73，客户端未完整展示追踪 ID。
+- [x] **M6-03 API 客户端与错误处理**：73/73 OpenAPI 操作均已生成强类型；Mobile/Web/Admin 共享安全错误解析，状态、错误码和合法 `X-Request-Id` 可见，Mobile 重试边界已有测试。
 - [ ] **M6-04 网络与草稿状态 — 未完成**：没有持久化未提交图片/裁切草稿和离线恢复机制。
 - [ ] **M6-05 相机与相册权限 — 部分**：请求、拒绝提示和重新操作可用；未做 iOS 受限权限与系统设置恢复真机验收。
 - [x] **M6-06 拍摄引导和质量提示**：模糊、明暗、低对比、边缘裁切和技术失败有明确提示。
@@ -198,11 +198,11 @@
 ## 下一位 AI 的首批执行清单
 
 - [ ] 先读 `HANDOFF.md`、`PROJECT_STATUS.md`、本文件和 ADR-0008。
-- [ ] 运行 `git status --short`，确认无提交且所有文件未跟踪；不要直接 `git add -A`。
+- [ ] 运行 `git status --short` 和 `git log -1 --oneline`，确认基线与当前改动范围。
 - [ ] 设置 `CI=true`、`NODE_ENV=development`，运行契约和类型检查建立基线。
-- [ ] 完成剩余 38 个管理端 OpenAPI Schema，并把 Admin API 客户端迁移到生成类型。
-- [ ] 把契约标记覆盖推进到 73/73，再更新 ADR、状态和本清单。
+- [x] 为客户端统一解析错误码和 `X-Request-Id`，在错误状态显示可供排查的追踪 ID。
+- [ ] 实现 App 未提交图片/裁切草稿持久化和离线恢复，并增加状态测试。
 - [ ] 增加 Web 浏览器 E2E；若需要新浏览器依赖，先记录选择和 CI 运行方式。
 - [ ] 在有 Docker 的环境执行 PostgreSQL/Redis/MinIO 跨服务冒烟；保留命令和输出证据。
-- [ ] 经用户确认后建立 Git 基线提交；先检查 `.env`、构建产物、缓存和示例内容。
+- [ ] 遵循 `CONTRIBUTING.md` 在功能分支提交并发起评审；继续排除 `.env`、构建产物、缓存和真实私有内容。
 - [ ] 外部内容/模型/合规条件缺失时只记录阻塞，不生成无来源图片、虚假准确率或伪专家建议。

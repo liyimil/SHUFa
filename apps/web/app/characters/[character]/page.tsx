@@ -1,3 +1,4 @@
+import { apiRequestIdHint } from "@calligraphy/api-contract";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -74,7 +75,8 @@ export default async function CharacterPage({
 
   try {
     result = await fetchCatalog(character, filters);
-  } catch {
+  } catch (error: unknown) {
+    const requestIdHint = apiRequestIdHint(error);
     return (
       <main className="result-shell">
         <div className="error-state">
@@ -82,6 +84,7 @@ export default async function CharacterPage({
           <p>
             你的查询没有丢失，请稍后再试。我们不会用未经核验的图片填充结果。
           </p>
+          {requestIdHint ? <p className="request-id">{requestIdHint}</p> : null}
           <Link className="back-link" href="/">
             返回查字
           </Link>
