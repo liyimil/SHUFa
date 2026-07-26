@@ -198,8 +198,8 @@
 ## 下一位 AI 的首批执行清单
 
 - [ ] 先读 `HANDOFF.md`、`PROJECT_STATUS.md`、本文件和 ADR-0008。
-- [ ] 运行 `git status --short` 和 `git log -1 --oneline`，确认基线与当前改动范围。
-- [ ] 设置 `CI=true`、`NODE_ENV=development`，运行契约和类型检查建立基线。
+- [x] 已运行 `git status --short` 和 `git log -1 --oneline`，确认基线与当前改动范围；实现提交为 `3fc147d`。
+- [x] 已运行格式、Lint、依赖安全审计、OpenAPI 契约、类型、测试和八个工作区构建门禁，全部通过。
 - [x] 为客户端统一解析错误码和 `X-Request-Id`，在错误状态显示可供排查的追踪 ID。
 - [x] 实现 App 未提交图片/裁切草稿持久化和离线恢复，并增加状态测试。
 - [x] 增加 Web 浏览器 E2E；Playwright 版本、Mock API、桌面/移动项目、CI 浏览器安装和失败制品均已记录。
@@ -208,5 +208,5 @@
 - [x] 为 AI 服务增加 `uv.lock`、mypy strict 和 locked CI/生产镜像安装，修复静态检查发现的类型边界。
 - [x] 贯通 Worker、AI 与 API 的 `X-Request-Id`，补齐 AI 最小披露结构化日志和五类任务传播测试。
 - [x] Docker 已安装（29.6.2），执行 PostgreSQL/Redis/MinIO 跨服务冒烟；17 项冒烟全绿（PG 34 表 / Redis PING / BullMQ 入队+取出+清空 / 私有桶预签名上传+下载+匿名拒绝 / 公开桶匿名读）。脚本 `apps/api/scripts/smoke-test.mjs`。五类 Worker 端到端真实任务全通（19/19）：artwork-analysis（匿名上传→AI 质检→回调）、artwork-deletion（DELETE→S3 物理删除→回调）、glyph-crop（DB+S3→AI 裁切→公开桶上传→回调）、source-segmentation（DB→AI 预切分→候选持久化→回调）、practice-structure（DB+S3→AI 几何比较→建议回调）。`pnpm e2e:worker:local` 会构建、迁移、启动/清理三项应用服务并使用脚本内生成的无版权几何夹具复现。
-- [ ] 遵循 `CONTRIBUTING.md` 在功能分支提交并发起评审；继续排除 `.env`、构建产物、缓存和真实私有内容。
+- [x] 已遵循 `CONTRIBUTING.md` 在 `codex/openapi-client-errors` 提交并推送，草稿 PR #1 保持开放；`.env`、构建产物、缓存和真实私有内容未进入提交。
 - [ ] 外部内容/模型/合规条件缺失时只记录阻塞，不生成无来源图片、虚假准确率或伪专家建议。
