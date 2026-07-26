@@ -26,12 +26,14 @@ CREATE TABLE "user_consent_audits" (
 INSERT INTO "user_privacy_preferences" ("user_id", "policy_version")
 SELECT "id", 'privacy-v1' FROM "users";
 
+-- UNION resolves untyped string literals as text, so cast each branch to the
+-- enum explicitly before inserting into the enum-typed dimension column.
 INSERT INTO "user_consent_audits" ("id", "user_id", "dimension", "enabled", "policy_version")
-SELECT gen_random_uuid(), "id", 'STORAGE', true, 'privacy-v1' FROM "users"
+SELECT gen_random_uuid(), "id", 'STORAGE'::"UserConsentDimension", true, 'privacy-v1' FROM "users"
 UNION ALL
-SELECT gen_random_uuid(), "id", 'PUBLIC_SHARING', false, 'privacy-v1' FROM "users"
+SELECT gen_random_uuid(), "id", 'PUBLIC_SHARING'::"UserConsentDimension", false, 'privacy-v1' FROM "users"
 UNION ALL
-SELECT gen_random_uuid(), "id", 'MODEL_TRAINING', false, 'privacy-v1' FROM "users";
+SELECT gen_random_uuid(), "id", 'MODEL_TRAINING'::"UserConsentDimension", false, 'privacy-v1' FROM "users";
 
 CREATE INDEX "user_consent_audits_user_id_dimension_created_at_idx" ON "user_consent_audits"("user_id", "dimension", "created_at");
 ALTER TABLE "user_privacy_preferences" ADD CONSTRAINT "user_privacy_preferences_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

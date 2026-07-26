@@ -850,6 +850,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/identity/sms/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 发送手机验证码 */
+        post: operations["IdentityController_sendSms"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/sms/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 验证手机验证码并登录/注册/升级匿名账号 */
+        post: operations["IdentityController_verifySms"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/web/anonymous": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 创建匿名会话并通过 HttpOnly Cookie 下发 Refresh Token */
+        post: operations["WebIdentityController_createAnonymousWebSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/web/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 通过 HttpOnly Cookie 刷新会话 */
+        post: operations["WebIdentityController_refreshWebSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/web/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 撤销 HttpOnly Cookie 会话 */
+        post: operations["WebIdentityController_revokeWebSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/web/sms/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 通过手机验证码登录并设置 HttpOnly Cookie */
+        post: operations["WebIdentityController_verifySmsWebSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/practices": {
         parameters: {
             query?: never;
@@ -897,6 +999,23 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/practices/{sessionId}/glyph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 切换练习会话的参考范字 */
+        patch: operations["PracticeController_switchGlyph"];
         trace?: never;
     };
     "/api/v1/practices/{sessionId}/shares": {
@@ -1633,6 +1752,19 @@ export interface components {
             tokenType: "Bearer";
             user: components["schemas"]["SessionUser"];
         };
+        PhoneVerificationCodeRequest: {
+            phone: string;
+        };
+        PhoneVerificationCodeResult: {
+            /** @enum {boolean} */
+            sent: true;
+        };
+        PhoneVerificationRequest: {
+            /** @description Optional anonymous refresh token proving ownership of an anonymous account to upgrade. */
+            anonymousRefreshToken?: string;
+            code: string;
+            phone: string;
+        };
         PracticeAdvice: {
             /** @enum {string} */
             advanced_analysis_status: "UNAVAILABLE_NO_VALIDATED_CHARACTER_RULE";
@@ -1909,6 +2041,10 @@ export interface components {
             evidence: string;
             phenomenon: string;
         };
+        SwitchPracticeGlyphRequest: {
+            /** Format: uuid */
+            glyphId: string;
+        };
         UpdateCalligrapherRequest: {
             biography?: string | null;
             dynasty?: string;
@@ -1988,6 +2124,15 @@ export interface components {
             status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "DISMISSED";
             /** Format: date-time */
             updatedAt: string;
+        };
+        WebIdentitySession: {
+            accessToken: string;
+            expiresInSeconds: number;
+            user: components["schemas"]["SessionUser"];
+        };
+        WebPhoneVerificationRequest: {
+            code: string;
+            phone: string;
         };
         WorkSummary: {
             /** Format: uuid */
@@ -3413,6 +3558,138 @@ export interface operations {
             };
         };
     };
+    IdentityController_sendSms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhoneVerificationCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description 验证码发送请求已处理。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhoneVerificationCodeResult"];
+                };
+            };
+        };
+    };
+    IdentityController_verifySms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhoneVerificationRequest"];
+            };
+        };
+        responses: {
+            /** @description 手机号会话已签发。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentitySession"];
+                };
+            };
+        };
+    };
+    WebIdentityController_createAnonymousWebSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Web 匿名会话已签发并设置 Refresh Cookie。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebIdentitySession"];
+                };
+            };
+        };
+    };
+    WebIdentityController_refreshWebSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Web 会话已轮换并更新 Refresh Cookie。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebIdentitySession"];
+                };
+            };
+        };
+    };
+    WebIdentityController_revokeWebSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Web 会话已撤销并清除 Refresh Cookie。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevokeSessionResult"];
+                };
+            };
+        };
+    };
+    WebIdentityController_verifySmsWebSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebPhoneVerificationRequest"];
+            };
+        };
+        responses: {
+            /** @description Web 手机号会话已签发并设置 Refresh Cookie。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebIdentitySession"];
+                };
+            };
+        };
+    };
     PracticeController_listPractices: {
         parameters: {
             query?: never;
@@ -3496,6 +3773,32 @@ export interface operations {
         responses: {
             /** @description 再次练习已加入会话。 */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeView"];
+                };
+            };
+        };
+    };
+    PracticeController_switchGlyph: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SwitchPracticeGlyphRequest"];
+            };
+        };
+        responses: {
+            /** @description 参考范字已切换。 */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

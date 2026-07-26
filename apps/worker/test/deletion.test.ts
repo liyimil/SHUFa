@@ -30,6 +30,10 @@ describe("artwork deletion worker", () => {
           new Headers(init?.headers).get("x-internal-token"),
           "worker-token",
         );
+        assert.equal(
+          new Headers(init?.headers).get("x-request-id"),
+          job.deletionId,
+        );
         return new Response("{}", { status: 201 });
       },
       internalToken: "worker-token",
@@ -51,6 +55,10 @@ describe("artwork deletion worker", () => {
         apiBaseUrl: "http://api:3001",
         fetcher: async (_input, init) => {
           callbackBody = JSON.parse(String(init?.body));
+          assert.equal(
+            new Headers(init?.headers).get("x-request-id"),
+            job.deletionId,
+          );
           return new Response("{}", { status: 201 });
         },
         internalToken: "worker-token",

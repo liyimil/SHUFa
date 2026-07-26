@@ -47,7 +47,11 @@ export async function processPracticeAnalysis(
   );
   const comparison = await dependencies.fetcher(
     `${normalize(dependencies.aiServiceUrl)}/v1/structure-comparison`,
-    { body: form, method: "POST" },
+    {
+      body: form,
+      headers: { "X-Request-Id": job.attemptId },
+      method: "POST",
+    },
   );
   if (!comparison.ok) {
     throw new Error(`Structure comparison failed (${comparison.status}).`);
@@ -74,6 +78,7 @@ export async function processPracticeAnalysis(
       headers: {
         "Content-Type": "application/json",
         "X-Internal-Token": dependencies.internalToken,
+        "X-Request-Id": job.attemptId,
       },
       method: "POST",
     },
@@ -103,6 +108,7 @@ export async function reportPracticeAnalysisFailure(
       headers: {
         "Content-Type": "application/json",
         "X-Internal-Token": dependencies.internalToken,
+        "X-Request-Id": job.attemptId,
       },
       method: "POST",
     },

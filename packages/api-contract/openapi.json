@@ -2271,6 +2271,54 @@
         ],
         "type": "object"
       },
+      "PhoneVerificationCodeRequest": {
+        "properties": {
+          "phone": {
+            "pattern": "^1[3-9]\\d{9}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone"
+        ],
+        "type": "object"
+      },
+      "PhoneVerificationCodeResult": {
+        "properties": {
+          "sent": {
+            "enum": [
+              true
+            ],
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sent"
+        ],
+        "type": "object"
+      },
+      "PhoneVerificationRequest": {
+        "properties": {
+          "anonymousRefreshToken": {
+            "description": "Optional anonymous refresh token proving ownership of an anonymous account to upgrade.",
+            "pattern": "^[A-Za-z0-9_-]{43}$",
+            "type": "string"
+          },
+          "code": {
+            "pattern": "^\\d{6}$",
+            "type": "string"
+          },
+          "phone": {
+            "pattern": "^1[3-9]\\d{9}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "phone"
+        ],
+        "type": "object"
+      },
       "PracticeAdvice": {
         "additionalProperties": true,
         "properties": {
@@ -3356,6 +3404,18 @@
         ],
         "type": "object"
       },
+      "SwitchPracticeGlyphRequest": {
+        "properties": {
+          "glyphId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "glyphId"
+        ],
+        "type": "object"
+      },
       "UpdateCalligrapherRequest": {
         "minProperties": 1,
         "properties": {
@@ -3654,6 +3714,43 @@
           "resolvedAt",
           "status",
           "updatedAt"
+        ],
+        "type": "object"
+      },
+      "WebIdentitySession": {
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresInSeconds": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "user": {
+            "$ref": "#/components/schemas/SessionUser"
+          }
+        },
+        "required": [
+          "accessToken",
+          "expiresInSeconds",
+          "user"
+        ],
+        "type": "object"
+      },
+      "WebPhoneVerificationRequest": {
+        "properties": {
+          "code": {
+            "pattern": "^\\d{6}$",
+            "type": "string"
+          },
+          "phone": {
+            "pattern": "^1[3-9]\\d{9}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "phone"
         ],
         "type": "object"
       },
@@ -6043,6 +6140,174 @@
         "x-client-contract": true
       }
     },
+    "/api/v1/identity/sms/send": {
+      "post": {
+        "operationId": "IdentityController_sendSms",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneVerificationCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneVerificationCodeResult"
+                }
+              }
+            },
+            "description": "验证码发送请求已处理。"
+          }
+        },
+        "summary": "发送手机验证码",
+        "tags": [
+          "identity"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/identity/sms/verify": {
+      "post": {
+        "operationId": "IdentityController_verifySms",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentitySession"
+                }
+              }
+            },
+            "description": "手机号会话已签发。"
+          }
+        },
+        "summary": "验证手机验证码并登录/注册/升级匿名账号",
+        "tags": [
+          "identity"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/identity/web/anonymous": {
+      "post": {
+        "operationId": "WebIdentityController_createAnonymousWebSession",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebIdentitySession"
+                }
+              }
+            },
+            "description": "Web 匿名会话已签发并设置 Refresh Cookie。"
+          }
+        },
+        "summary": "创建匿名会话并通过 HttpOnly Cookie 下发 Refresh Token",
+        "tags": [
+          "identity"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/identity/web/refresh": {
+      "post": {
+        "operationId": "WebIdentityController_refreshWebSession",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebIdentitySession"
+                }
+              }
+            },
+            "description": "Web 会话已轮换并更新 Refresh Cookie。"
+          }
+        },
+        "summary": "通过 HttpOnly Cookie 刷新会话",
+        "tags": [
+          "identity"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/identity/web/revoke": {
+      "post": {
+        "operationId": "WebIdentityController_revokeWebSession",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeSessionResult"
+                }
+              }
+            },
+            "description": "Web 会话已撤销并清除 Refresh Cookie。"
+          }
+        },
+        "summary": "撤销 HttpOnly Cookie 会话",
+        "tags": [
+          "identity"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/identity/web/sms/verify": {
+      "post": {
+        "operationId": "WebIdentityController_verifySmsWebSession",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebPhoneVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebIdentitySession"
+                }
+              }
+            },
+            "description": "Web 手机号会话已签发并设置 Refresh Cookie。"
+          }
+        },
+        "summary": "通过手机验证码登录并设置 HttpOnly Cookie",
+        "tags": [
+          "identity"
+        ],
+        "x-client-contract": true
+      }
+    },
     "/api/v1/practices": {
       "get": {
         "operationId": "PracticeController_listPractices",
@@ -6187,6 +6452,54 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "practice"
+        ],
+        "x-client-contract": true
+      }
+    },
+    "/api/v1/practices/{sessionId}/glyph": {
+      "patch": {
+        "operationId": "PracticeController_switchGlyph",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sessionId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwitchPracticeGlyphRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeView"
+                }
+              }
+            },
+            "description": "参考范字已切换。"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "切换练习会话的参考范字",
         "tags": [
           "practice"
         ],

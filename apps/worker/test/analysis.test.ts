@@ -17,10 +17,12 @@ const job: ArtworkAnalysisJob = {
 describe("artwork analysis worker", () => {
   it("downloads, analyzes and reports a quality result", async () => {
     const requestedUrls: string[] = [];
+    const requestIds: Array<string | null> = [];
     let callbackToken: string | null = null;
     const fetcher: typeof fetch = async (input, init) => {
       const url = String(input);
       requestedUrls.push(url);
+      requestIds.push(new Headers(init?.headers).get("x-request-id"));
       if (url.endsWith("/v1/image-quality")) {
         assert.ok(init?.body instanceof FormData);
         return new Response(
@@ -59,6 +61,7 @@ describe("artwork analysis worker", () => {
       "http://ai:8000/v1/image-quality",
       `http://api:3001/api/v1/internal/analyses/${job.analysisId}/result`,
     ]);
+    assert.deepEqual(requestIds, [job.analysisId, job.analysisId]);
     assert.equal(callbackToken, "test-internal-token");
   });
 
@@ -83,6 +86,7 @@ describe("artwork analysis worker", () => {
 
   it("reports a sanitized terminal failure to the API", async () => {
     let callbackBody: Record<string, unknown> | null = null;
+    let callbackRequestId: string | null = null;
     let callbackToken: string | null = null;
     await reportArtworkAnalysisFailure(
       job,
@@ -94,6 +98,7 @@ describe("artwork analysis worker", () => {
             unknown
           >;
           callbackToken = new Headers(init?.headers).get("x-internal-token");
+          callbackRequestId = new Headers(init?.headers).get("x-request-id");
           return new Response(null, { status: 200 });
         },
         internalToken: "test-internal-token",
@@ -104,6 +109,7 @@ describe("artwork analysis worker", () => {
     );
 
     assert.equal(callbackToken, "test-internal-token");
+    assert.equal(callbackRequestId, job.analysisId);
     assert.deepEqual(callbackBody, {
       failureCode: "QUALITY_ANALYSIS_FAILED",
       failureMessage: "GET [redacted-url] failed",

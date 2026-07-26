@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
 
+import helmet from "helmet";
 import { sanitizeHttpPath } from "@calligraphy/observability";
 
 interface RequestMetadata {
   get(name: string): string | undefined;
+  headers: Record<string, string | string[] | undefined>;
   method: string;
   path: string;
 }
@@ -14,6 +16,39 @@ interface ResponseMetadata {
   statusCode: number;
 }
 
+/**
+ * Helmet middleware for comprehensive security headers.
+ * Sets: X-Content-Type-Options, X-Frame-Options, Referrer-Policy,
+ * Permissions-Policy, HSTS, X-XSS-Protection, and more.
+ */
+export const helmetMiddleware = helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        ...(process.env.NODE_ENV === "production" ? [] : ["'unsafe-inline'"]),
+      ],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  frameguard: { action: "deny" },
+  hsts: {
+    maxAge: 15552000, // 180 days
+    includeSubDomains: true,
+  },
+});
+
+/**
+ * Request metadata middleware: assigns a request ID and logs request completion.
+ */
 export function requestMetadataMiddleware(
   request: RequestMetadata,
   response: ResponseMetadata,
@@ -26,14 +61,12 @@ export function requestMetadataMiddleware(
       : randomUUID();
   const startedAt = performance.now();
 
-  response.setHeader("X-Content-Type-Options", "nosniff");
-  response.setHeader("X-Frame-Options", "DENY");
-  response.setHeader("Referrer-Policy", "no-referrer");
+  request.headers["x-request-id"] = requestId;
+  response.setHeader("X-Request-Id", requestId);
   response.setHeader(
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=()",
   );
-  response.setHeader("X-Request-Id", requestId);
   response.on("finish", () => {
     console.log(
       JSON.stringify({
@@ -52,9 +85,9 @@ export function requestMetadataMiddleware(
 export function corsConfiguration(configuredOrigins?: string) {
   return {
     exposedHeaders: ["X-Request-Id"],
-    origin: configuredOrigins?.split(",") ?? [
-      "http://localhost:3000",
-      "http://localhost:3002",
-    ],
+    origin: configuredOrigins
+      ?.split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean) ?? ["http://localhost:3000", "http://localhost:3002"],
   };
 }

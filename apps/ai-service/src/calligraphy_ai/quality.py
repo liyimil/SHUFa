@@ -87,6 +87,11 @@ def _edge_ink_ratio(ink_mask: np.ndarray) -> float:
     return float(np.mean(border))
 
 
+def validate_image_bytes(image_bytes: bytes) -> None:
+    """Decode an uploaded raster and enforce the shared image safety limits."""
+    _decode_grayscale(image_bytes)
+
+
 def analyze_image_bytes(image_bytes: bytes) -> ImageQualityResult:
     grayscale = _decode_grayscale(image_bytes)
     height, width = grayscale.shape

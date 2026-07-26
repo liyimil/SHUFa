@@ -1,6 +1,6 @@
 # Python 依赖与类型基线
 
-> 基线日期：2026-07-22
+> 基线日期：2026-07-26
 >
 > 运行时：Python 3.12
 >
@@ -40,11 +40,11 @@ uv run pytest
 
 ```text
 uv lock --check       通过，39 个包的解析与锁文件一致
-uv run ruff format --check .  11 files already formatted
+uv run ruff format --check .  15 files already formatted
 uv run ruff check .   All checks passed!
-uv run mypy           Success: no issues found in 11 source files
-uv run pytest         12 passed
+uv run mypy           Success: no issues found in 15 source files
+uv run pytest         23 passed
 production export     不含 mypy/pytest/Ruff/httpx，包含全部 7 个直接运行时依赖
 ```
 
-当前机器没有 Docker；AI 镜像已由 [GitHub Actions run 29900054074](https://github.com/liyimil/SHUFa/actions/runs/29900054074) 的 Linux 镜像矩阵实际构建通过。本地 locked 同步和该构建结果仍不能替代 PostgreSQL/Redis/S3 跨服务运行验收。
+AI 镜像已由 [GitHub Actions run 29900054074](https://github.com/liyimil/SHUFa/actions/runs/29900054074) 的 Linux 镜像矩阵实际构建通过；本机 Docker 29.6.2 下，AI 还与 API、Worker、PostgreSQL、Redis、MinIO 完成了 19/19 五类 Worker E2E。该证据仍不能替代 Staging/生产运行验收。

@@ -18,13 +18,15 @@ const job: GlyphCropJob = {
 describe("glyph crop worker", () => {
   it("crops privately, uploads publicly and reports metadata", async () => {
     let uploadedKey = "";
+    const requestIds: Array<string | null> = [];
     let requests = 0;
     await processGlyphCrop(job, {
       aiServiceUrl: "http://ai:8000",
       apiBaseUrl: "http://api:3001",
       downloadObject: () => Promise.resolve(new Uint8Array([1, 2, 3])),
-      fetcher: async () => {
+      fetcher: async (_input, init) => {
         requests += 1;
+        requestIds.push(new Headers(init?.headers).get("x-request-id"));
         if (requests === 1) {
           return new Response(new Uint8Array([4, 5, 6]), {
             headers: {
@@ -49,5 +51,6 @@ describe("glyph crop worker", () => {
     });
     assert.equal(uploadedKey, job.outputObjectKey);
     assert.equal(requests, 2);
+    assert.deepEqual(requestIds, [job.glyphId, job.glyphId]);
   });
 });

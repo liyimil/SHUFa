@@ -1,6 +1,8 @@
-import "dotenv/config";
-
+import dotenv from "dotenv";
+import path from "node:path";
 import { defineConfig } from "prisma/config";
+
+dotenv.config({ path: path.resolve(import.meta.dirname, "../../.env") });
 
 const localDatabaseUrl =
   "postgresql://calligraphy:calligraphy@localhost:5432/calligraphy";

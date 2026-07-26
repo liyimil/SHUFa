@@ -18,6 +18,9 @@ const glyphIds = {
   wang: "55555555-5555-4555-8555-555555555555",
 };
 const revokedShares = new Set();
+const mockUserId = "00000000-0000-4000-8000-000000000001";
+const mockAccessToken = "mock-access-token-e2e";
+const mockRefreshToken = "mock-refresh-token-e2e";
 const syntheticTestImage = Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800"><rect width="800" height="800" fill="#e8dfd1"/><text x="400" y="420" text-anchor="middle" font-family="sans-serif" font-size="72" fill="#8c3c2d">E2E TEST</text></svg>',
   "utf8",
@@ -141,6 +144,34 @@ const server = createServer((request, response) => {
   if (request.method === "POST" && url.pathname === "/__test__/reset") {
     revokedShares.clear();
     json(response, 200, { reset: true });
+    return;
+  }
+  if (
+    request.method === "POST" &&
+    url.pathname === "/api/v1/identity/anonymous"
+  ) {
+    json(response, 201, {
+      accessToken: mockAccessToken,
+      expiresInSeconds: 900,
+      refreshExpiresInSeconds: 2592000,
+      refreshToken: mockRefreshToken,
+      tokenType: "Bearer",
+      user: { id: mockUserId, kind: "anonymous" },
+    });
+    return;
+  }
+  if (
+    request.method === "POST" &&
+    url.pathname === "/api/v1/identity/refresh"
+  ) {
+    json(response, 200, {
+      accessToken: mockAccessToken,
+      expiresInSeconds: 900,
+      refreshExpiresInSeconds: 2592000,
+      refreshToken: mockRefreshToken,
+      tokenType: "Bearer",
+      user: { id: mockUserId, kind: "anonymous" },
+    });
     return;
   }
   if (

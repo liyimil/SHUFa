@@ -21,6 +21,19 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    files: [
+      "**/scripts/**/*.{js,mjs}",
+      "apps/mobile/babel.config.js",
+      "apps/mobile/metro.config.js",
+    ],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+  {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       globals: {

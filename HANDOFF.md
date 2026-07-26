@@ -1,6 +1,6 @@
 # AI 辅助书法学习产品：完整 AI 交接文档
 
-> 交接版本：2026-07-22
+> 交接版本：2026-07-23
 > 仓库路径：`C:\Users\asus\Desktop\github\书法`  
 > 当前目标：完成《AI辅助书法学习产品-实施目标与任务拆解》中的阶段 0 技术验证和阶段 1 MVP  
 > 当前结论：核心工程闭环已实现并可本地构建；完整验收和公开上线尚未完成  
@@ -15,10 +15,10 @@
 1. 核心 App 流程已经有大量实现，不是只有脚手架。
 2. “识别”目前依靠用户手动确认；没有毛笔字 Top-K 模型，不能声称识别已完成。
 3. 目录、后台和权利门禁齐全，但仓库不含真实授权名家字库，不能把示例或任意网络图片当真迹。
-4. 五个生产镜像已在 GitHub Actions Linux runner 构建通过；本机没有 Docker，真实 PostgreSQL/Redis/MinIO/Staging 运行链路仍未验收。
+4. 五个生产镜像已在 GitHub Actions Linux runner 构建通过；本机 Docker 29.6.2 已安装，本地 PostgreSQL/Redis/MinIO 跨服务冒烟已通过（17 项全绿），五类 Worker 端到端真实任务全通（19/19），但 Staging/生产运行链路仍未验收。
 5. 当前功能分支为 `codex/openapi-client-errors`，已推送并建立草稿 PR #1；继续开发应保留该分支上的契约、错误处理和离线草稿改动，不要退回旧 `main`。
 
-M2-04、M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正、M5 公开 Web 和 Node 依赖公告修复已完成。下一位 AI 的默认起点是 AI 跨服务关联 ID，或需要设备的 App 真机验收；不要先做大规模重构。
+M2-04、M2-16、M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方向修正、M5 公开 Web、Node 依赖公告修复、M7-06 练习内切换参照、M3-11 Web Cookie 会话、M7-10 部件分析降级端点、M9-09 安全边界扩展、Docker 本地跨服务冒烟（17 项全绿）和五类 Worker 端到端真实任务（19/19 全通）已完成。下一位 AI 的默认本地任务是上传安全混沌测试和性能容量基线；外部任务是 App 真机验收；不要先做大规模重构。
 
 ## 1. 产品目标与不能改变的边界
 
@@ -66,10 +66,10 @@ M2-04、M2-14、三端错误追踪、App 离线草稿、App 内精确框选/方�
 | `apps/mobile`            | Expo 57、React Native 0.86                  | 拍照、裁切、上传、确认、查字、对比、建议、再练、历史、收藏、分享、反馈、删除 | 核心工程流程、精确裁切和离线草稿已实现；无 Top-K 和真机验收           |
 | `apps/web`               | Next.js 16、React 19                        | 公开查字、范字详情、分享页、OG/Metadata/JSON-LD                              | 功能、E2E、axe 与本地 Lighthouse 预算已完成；缺真实 CDN/设备验收      |
 | `apps/admin`             | Next.js 16、React 19                        | 内容录入、权利、原图、预切分、框选、标注、导入、审核、发布、反馈、教师抽检   | 工程功能和生成类型已接入；缺真实内容操作验收                          |
-| `apps/api`               | NestJS 11、Prisma 7、PostgreSQL             | 模块化单体业务事实和权限边界                                                 | 143 项测试通过；22 组迁移；真实数据库未迁移验收                       |
-| `apps/worker`            | Node 24、BullMQ、AWS S3 SDK                 | 质量、裁切、预切分、结构分析和物理删除任务                                   | 12 项测试通过；真实 Redis/S3/AI 跨服务未验证                          |
-| `apps/ai-service`        | Python 3.12、FastAPI、OpenCV、NumPy、Pillow | 图片质量、裁切、预切分、归一化和几何结构比较                                 | `uv.lock`、mypy strict、12 项 pytest；没有 Top-K 模型和正式固定评测集 |
-| `packages/api-contract`  | OpenAPI、openapi-typescript                 | 稳定 OpenAPI 和跨客户端类型                                                  | 73/73 个操作强类型，8 项契约测试                                      |
+| `apps/api`               | NestJS 11、Prisma 7、PostgreSQL             | 模块化单体业务事实和权限边界                                                 | 206 项测试通过；22 组迁移已在本地 PostgreSQL 17 验证                  |
+| `apps/worker`            | Node 24、BullMQ、AWS S3 SDK                 | 质量、裁切、预切分、结构分析和物理删除任务                                   | 12 项测试通过；五类 Worker 端到端真实任务全通（19/19）                |
+| `apps/ai-service`        | Python 3.12、FastAPI、OpenCV、NumPy、Pillow | 图片质量、裁切、预切分、归一化和几何结构比较                                 | `uv.lock`、mypy strict、23 项 pytest；没有 Top-K 模型和正式固定评测集 |
+| `packages/api-contract`  | OpenAPI、openapi-typescript                 | 稳定 OpenAPI 和跨客户端类型                                                  | 80/80 个操作强类型，9 项契约测试                                      |
 | `packages/observability` | TypeScript                                  | API/Worker 共用路径和诊断脱敏                                                | 3 项测试通过                                                          |
 | `packages/domain-types`  | TypeScript                                  | 平台无关领域类型占位包                                                       | 可构建；暂无运行时测试和大规模复用                                    |
 
@@ -157,12 +157,13 @@ AI HTTP 边界：
 - `POST /v1/glyph-normalization`
 - `POST /v1/structure-comparison`
 
-AI 当前没有 `/recognition` 或 Top-K 接口。`glyph-normalization-v1` 保持原比例放入 512×512 白底画布；`structure-measurement-v2` 输出外框、高宽比、重心、空间分布、置信度和异常。低置信度不输出动作建议；部件比例和主方向明确标为没有验证规则。
+AI 已提供 `/v1/glyph-recognition` 降级接口，但没有 Top-K 模型：它会安全解析图片并返回 `DEGRADED` 空候选，不得据此声称识别完成。`glyph-normalization-v1` 保持原比例放入 512×512 白底画布；`structure-measurement-v2` 输出外框、高宽比、重心、空间分布、置信度和异常。低置信度不输出动作建议；部件比例和主方向明确标为没有验证规则。
 
 ### 4.6 安全、隐私、版权与可观测性
 
 - API 安全头、CORS、请求 ID、结构化完成日志和生产配置快速失败。
-- CI 对中危以上 Node 依赖公告快速失败；2026-07-22 基线为零，`pnpm-workspace.yaml` 的六项精确安全覆盖、公告和跨版本兼容证据见 `docs/dependency-security-baseline.md`。
+- 五类 Worker 任务把 analysis/attempt/segmentation/glyph/deletion UUID 作为同一 `X-Request-Id` 传给 AI 与 API 回调；AI 只记录方法、固定路径、状态、耗时和关联 ID，非法头会替换为新 UUID。
+- CI 对中危以上 Node 依赖公告快速失败；2026-07-26 基线为零，`pnpm-workspace.yaml` 的安全覆盖、公告和跨版本兼容证据见 `docs/dependency-security-baseline.md`。
 - 共享脱敏器移除签名 URL、Bearer/JWT、常见凭据、用户对象键、邮箱、手机号和长 Token。
 - 公开分享路径在日志中固定替换为 `:shareToken`，查询串不记录。
 - 后台角色和内部 Worker Token 分开；用户数据操作验证所有权。
@@ -175,7 +176,7 @@ AI 当前没有 `/recognition` 或 Top-K 接口。`glyph-normalization-v1` 保�
 - `apps/api/src/openapi-contract.ts` 在 Nest 路由扫描上补充真实 Schema。
 - `apps/api/scripts/generate-openapi.mts` 稳定排序并写 `packages/api-contract/openapi.json`。
 - `openapi-typescript` 生成 `packages/api-contract/src/generated.ts`。
-- 已结构化 73/73：身份、目录、上传、质检、隐私、练习、收藏、分享、删除、反馈、埋点、健康和全部管理端操作。
+- 已结构化 80/80：身份（含手机号和 Web Cookie 会话）、目录、上传、质检、隐私、练习（含切换范字）、收藏、分享、删除、反馈、埋点、健康和全部管理端操作。
 - 管理端 38 个操作均具有请求/响应、鉴权、UUID/查询参数和 CSV 契约。
 - Mobile 已消费身份、上传、质检、隐私、练习、收藏、删除、反馈和事件类型；Web 已消费目录类型。
 - Admin 的响应、教师抽检和反馈请求已消费 `@calligraphy/api-contract` 生成类型。
@@ -186,27 +187,36 @@ AI 当前没有 `/recognition` 或 Top-K 接口。`glyph-normalization-v1` 保�
 
 | 范围          | 结果                                                                                                               |
 | ------------- | ------------------------------------------------------------------------------------------------------------------ |
-| API           | 143/143 Node 测试；类型和生产构建通过                                                                              |
-| API 契约      | 8/8；73 个操作均标记且有响应 Schema，后台鉴权、请求、参数与 CSV 契约通过                                           |
+| API           | 206/206 Node 测试；类型和生产构建通过                                                                              |
+| API 契约      | 9/9；80 个操作均标记且有响应 Schema，后台鉴权、请求、参数与 CSV 契约通过                                           |
 | Worker        | 12/12；生产构建通过                                                                                                |
-| Mobile        | 35/35；类型检查和 Expo Android 静态导出通过                                                                        |
-| Web           | 12/12 模块测试；桌面/Pixel 7 Chromium 4/4 含 axe E2E；首页/单字页 Lighthouse 三轮预算；Next.js standalone 构建通过 |
+| Mobile        | 35/35；类型检查和 Expo Android 静态导出通过；自包含 APK 已在 Android Studio 模拟器安装启动                         |
+| Web           | 14/14 模块测试；桌面/Pixel 7 Chromium 4/4 含 axe E2E；首页/单字页 Lighthouse 三轮预算；Next.js standalone 构建通过 |
 | Admin         | 11/11；Next.js standalone 构建通过                                                                                 |
-| AI            | locked 安装、Ruff、mypy strict（11 个文件）和 12 项 pytest 通过                                                    |
+| AI            | locked 安装、Ruff、mypy strict（15 个文件）和 23 项 pytest 通过                                                    |
 | Observability | 3/3 脱敏测试                                                                                                       |
 | 镜像          | [GitHub Actions run 29900054074](https://github.com/liyimil/SHUFa/actions/runs/29900054074) 中五个镜像全部构建通过 |
 | 全仓          | Prettier、ESLint、Node 中危以上依赖审计、Turbo 类型/测试/构建通过                                                  |
 
-已知测试现象：一次全仓运行中 `apps/api/test/app.e2e.test.ts` 子进程整体退出但没有失败断言；单独运行 17/17，通过再次执行全仓测试后 API 143/143。若复现，优先检查 Node 测试并发、资源和子进程退出原因，不要直接放宽业务断言。
+历史上曾出现一次 `apps/api/test/app.e2e.test.ts` 子进程整体退出但没有失败断言；当前连续全量执行已通过 API 206/206。若复现，优先检查 Node 测试并发、资源和子进程退出原因，不要直接放宽业务断言。
 
 ## 6. 本地环境和启动方法
+
+### 6.0 2026-07-26 Android 本地验证快照
+
+- Android SDK：`C:\Users\asus\AppData\Local\Android\Sdk`；ADB 37.0.0，Java 17。
+- 自包含内部测试 APK：`C:\sf\artifacts\calligraphy-universal-release-test.apk`，支持 `arm64-v8a` 与 `x86_64`，SHA-256 为 `8ADC8545E410C04F555D75D9F65AF5D492892F6573354484C94B817493B85E88`。
+- APK 使用 Android Debug 证书和 v2 签名，只可用于内部设备验证，不能作为商店生产包。
+- `emulator-5554` 已安装并冷启动 `com.calligraphy.learning/.MainActivity`；已人工验证首页、系统照片选择器、裁切移动/缩放/旋转、确认裁切后草稿状态。截图位于 `C:\sf\artifacts\calligraphy-*.png`。
+- 实体 vivo 手机仍未出现在 `adb devices -l`；必须先在手机启用开发者选项、USB 调试，切换“传输文件”，并接受电脑 RSA 指纹授权。出现实体序列号后再安装上述 APK，不能把模拟器结果记作真机验收。
+- Docker Desktop 已恢复；PostgreSQL 17、Redis 8、MinIO 均健康，22 组迁移无待执行项，17 项基础设施冒烟和 19 项五类 Worker E2E 已于 2026-07-26 再次通过。实体机到 API/Worker/AI 的完整闭环仍需手机 ADB 授权后验证。
 
 ### 6.1 必需工具
 
 - Node.js 24+
 - pnpm 11.9.0
 - Python 3.12（必须 `<3.13`）
-- Docker / Docker Compose：当前机器没有；跨服务验收必须换环境
+- Docker / Docker Compose：Docker 29.6.2 已安装；当前仓库中文路径下 Compose 已验证可直接运行
 
 当前机器已有 `node_modules` 和 `.venv`，但交接者应以锁文件/配置重建，不依赖缓存目录。
 
@@ -229,15 +239,40 @@ Set-Location ..\..
 ### 6.3 基础设施（需要 Docker）
 
 ```powershell
-docker compose up -d
-docker compose ps
+# 使用 ASCII 路径别名（中文路径导致 docker compose 报 project name must not be empty）
+cd "C:\Users\asus\Desktop\github\shufa-junction"
+# compose.override.yaml 将 PG 端口改为 15432、Redis 改为 16379，避免与和宠项目冲突
+docker compose -f compose.yaml -f compose.override.yaml up -d
+docker compose -f compose.yaml -f compose.override.yaml ps
+
+# MinIO 桶初始化（通过 mc 容器执行）
+docker run --rm --network calligraphy-learning_default `
+  -e MC_HOST_local=http://calligraphy:change-me-now@object-storage:9000 `
+  minio/mc:latest mb local/calligraphy-private --ignore-existing
+docker run --rm --network calligraphy-learning_default `
+  -e MC_HOST_local=http://calligraphy:change-me-now@object-storage:9000 `
+  minio/mc:latest mb local/calligraphy-public --ignore-existing
+docker run --rm --network calligraphy-learning_default `
+  -e MC_HOST_local=http://calligraphy:change-me-now@object-storage:9000 `
+  minio/mc:latest anonymous set download local/calligraphy-public
+docker run --rm --network calligraphy-learning_default `
+  -e MC_HOST_local=http://calligraphy:change-me-now@object-storage:9000 `
+  minio/mc:latest anonymous set none local/calligraphy-private
+
+# 数据库迁移和 Prisma Client 生成
 pnpm --filter @calligraphy/api db:generate
-pnpm --filter @calligraphy/api db:validate
 pnpm --filter @calligraphy/api db:migrate
 pnpm --filter @calligraphy/api db:seed
+
+# 跨服务冒烟（PG + Redis + BullMQ + MinIO 私有/公开桶）
+cd apps/api && npx tsx scripts/smoke-test.mjs
+
+# 五类 Worker 端到端真实任务：自动构建、迁移、启动并清理 AI/API/Worker
+cd ../..
+pnpm e2e:worker:local
 ```
 
-注意：Compose 只定义 PostgreSQL、Redis 和 MinIO 服务，没有应用容器，也没有自动创建 `calligraphy-private`/`calligraphy-public` 桶的初始化任务。接手者必须补桶初始化或手工创建，并验证私有/公开桶策略。
+桶初始化已于 2026-07-23 完成：`calligraphy-private`（private）和 `calligraphy-public`（download）已创建并设置策略。17 项跨服务冒烟全绿：PG 34 表 / Redis PING / BullMQ 入队+取出+清空 / 私有桶预签名上传+下载+匿名拒绝 / 公开桶 SDK 上传+匿名读+删除。五类 Worker 端到端真实任务全通（19/19）：artwork-analysis（匿名上传→AI 质检→回调）、artwork-deletion（DELETE→S3 物理删除→回调并严格确认 `artworkStatus=DELETED`）、glyph-crop（DB+S3→AI 裁切→公开桶上传→回调）、source-segmentation（DB→AI 预切分→候选持久化→回调）、practice-structure（DB+S3→AI 几何比较→建议回调）。E2E 使用脚本动态生成的纯几何夹具，不依赖外部图片，也不冒充名家书法。`.env` 已配置于项目根目录，端口为 15432/16379/9000。
 
 ### 6.4 启动顺序
 
@@ -301,11 +336,14 @@ Web 本地 `e2e` 会先生产构建，再复制 standalone 静态资源并启动
 | `POSTGRES_DB/USER/PASSWORD`                | Compose            | 本地 PostgreSQL                   | 有，仅开发值                  |
 | `REDIS_URL`                                | API/Worker         | BullMQ 与 Redis                   | 有                            |
 | `JWT_SECRET`                               | API                | 用户和后台签名                    | 有占位，生产必须替换为 32+ 位 |
+| `PHONE_HASH_PEPPER`                        | API                | 手机号 HMAC 去标识化              | 有占位，生产必须独立替换      |
 | `ADMIN_ACCOUNTS_JSON`                      | API                | 后台账号、scrypt 哈希和角色       | 有无效占位；用哈希脚本生成    |
 | `INTERNAL_WORKER_TOKEN`                    | API/Worker         | 内部回调                          | 有占位，生产必须替换          |
 | `ARTWORK_DELETION_DELAY_SECONDS`           | API                | 物理删除延迟 0～2592000 秒        | 有，默认 0                    |
 | `WEB_CACHE_INVALIDATION_URL/TOKEN`         | API/Web            | 目录标签失效                      | 有占位 Token                  |
 | `PUBLIC_WEB_URL`                           | API/Web            | 分享链接和卡片 Origin             | 有                            |
+| `PUBLIC_ASSET_BASE_URL`                    | API                | 公开 Glyph/CDN Origin             | 有本地值，生产必须替换        |
+| `CORS_ORIGINS`                             | API                | 允许的 Web/Admin Origin           | 有本地值，生产必须明确配置    |
 | `S3_ENDPOINT/REGION/ACCESS_KEY/SECRET_KEY` | API/Worker         | S3 兼容存储                       | 有本地值                      |
 | `S3_BUCKET_PRIVATE/PUBLIC`                 | API/Worker         | 私有用户图/公开内容图             | 有                            |
 | `MINIO_ROOT_USER/PASSWORD`                 | Compose            | MinIO 管理账号                    | 有开发值                      |
@@ -319,14 +357,12 @@ pnpm --filter @calligraphy/api admin:hash-password -- 'replace-with-a-strong-pas
 
 把输出放入 `ADMIN_ACCOUNTS_JSON`，角色只能使用 `EDITOR`、`REVIEWER`、`RIGHTS`、`ADMIN`。
 
-### 7.2 代码支持但 `.env.example` 尚未列出的变量
+### 7.2 其他可选运行变量
 
-| 变量                    | 用途                                               | 下一步                               |
-| ----------------------- | -------------------------------------------------- | ------------------------------------ |
-| `CORS_ORIGINS`          | 逗号分隔 API 允许 Origin；缺省只允许本地 Web/Admin | 应补入模板并在生产明确配置           |
-| `ENABLE_API_DOCS`       | 生产临时开启 Swagger                               | 正常生产保持未设置/false             |
-| `PUBLIC_ASSET_BASE_URL` | 构造公开 Glyph 图片 URL                            | 生产应设置为 CDN/公开桶 HTTPS 根地址 |
-| `PORT`                  | Next standalone 运行端口                           | Dockerfile 已设置，不必放客户端环境  |
+| 变量              | 用途                     | 下一步                              |
+| ----------------- | ------------------------ | ----------------------------------- |
+| `ENABLE_API_DOCS` | 生产临时开启 Swagger     | 正常生产保持未设置/false            |
+| `PORT`            | Next standalone 运行端口 | Dockerfile 已设置，不必放客户端环境 |
 
 ### 7.3 尚不存在、不能凭空填写的配置
 
@@ -346,9 +382,12 @@ pnpm --filter @calligraphy/api admin:hash-password -- 'replace-with-a-strong-pas
 
 ```text
 ADMIN_ACCOUNTS_JSON
+CORS_ORIGINS
 DATABASE_URL
 INTERNAL_WORKER_TOKEN
 JWT_SECRET
+PHONE_HASH_PEPPER
+PUBLIC_ASSET_BASE_URL
 PUBLIC_WEB_URL
 REDIS_URL
 S3_BUCKET_PRIVATE
@@ -358,9 +397,9 @@ WEB_CACHE_INVALIDATION_TOKEN
 WEB_CACHE_INVALIDATION_URL
 ```
 
-`JWT_SECRET`、`INTERNAL_WORKER_TOKEN`、`WEB_CACHE_INVALIDATION_TOKEN` 必须至少 32 位且不能包含占位片段。生产默认关闭 Swagger。
+`JWT_SECRET`、`PHONE_HASH_PEPPER`、`INTERNAL_WORKER_TOKEN`、`WEB_CACHE_INVALIDATION_TOKEN` 必须至少 32 位且不能包含占位片段。生产默认关闭 Swagger。
 
-当前快速失败门禁仍有边界：它没有强制要求 `CORS_ORIGINS`、`PUBLIC_ASSET_BASE_URL`、S3 凭证/工作负载身份和 Worker 的 `AI_SERVICE_URL`/`API_BASE_URL`。API 可能启动成功但浏览器 Origin、公开图片或 Worker 链路仍不可用；部署清单必须额外校验这些变量。Worker 自身会在启动时拒绝缺少 `AI_SERVICE_URL`、`API_BASE_URL` 或 `INTERNAL_WORKER_TOKEN`。
+当前快速失败门禁仍有边界：它不能判断 S3 应使用静态凭证还是工作负载身份，也不能替 API 校验独立 Worker 进程的 `AI_SERVICE_URL`/`API_BASE_URL`。部署清单必须额外校验云身份与跨服务连通性；Worker 自身会在启动时拒绝缺少 `AI_SERVICE_URL`、`API_BASE_URL` 或 `INTERNAL_WORKER_TOKEN`。
 
 ## 8. 数据、示例内容和版权警告
 
@@ -398,29 +437,37 @@ WEB_CACHE_INVALIDATION_URL
 
 ### 10.1 第一批：客户端质量
 
-- 为 AI HTTP 日志接入来自 Worker/API 的关联 ID，并证明跨服务链路脱敏且可追踪。
+- 完成 M7-06：在同一练习会话中切换合法的同字公开范字，并创建新的版本化分析运行；不能覆盖历史参照或旧建议快照。
 - 在 Android/iOS 真机验证 App 裁切拖动、方向修正、大图内存、权限和弱网竞争状态；记录设备与系统版本。
 
 ### 10.2 第二批：工程可交接质量
 
 - 按 `CONTRIBUTING.md` 在功能分支提交并通过 PR 评审。
-- 为 AI 日志接入来自 Worker/API 的关联 ID。
+- 保持 `X-Request-Id` 传播测试覆盖新增 Worker/AI 路径，并在真实 Staging 日志平台验证检索。
 
-### 10.3 第三批：有 Docker/云资源后
+### 10.3 第三批：Docker 本地冒烟（Docker 29.6.2 已安装）
 
-- 初始化两个 S3 桶和桶策略，验证私有对象没有永久公开 URL。
-- 在空 PostgreSQL 18 执行 22 组迁移和 seed，并验证从备份恢复。
-- 启动 Redis，走通五类 BullMQ 任务和最终失败回调。
-- 运行上传格式伪装、截断、超大像素、并发完成/取消和拒绝对象清理。
-- 验证下架后 API、Web 标签、CDN 和旧公开图片 URL 的失效时间。
-- 演练 AI 503/超时、Redis 断连、S3 失败、API 回调断连和迟到重复回调。
+已完成项（2026-07-23）：
+
+- [x] 初始化两个 S3 桶和桶策略，验证私有对象没有永久公开 URL（`calligraphy-private`=private, `calligraphy-public`=download，匿名 403/200 已验证）。
+- [x] 在 PostgreSQL 17 执行 22 组迁移全部成功（端口 15432，Prisma `migrate deploy`）。
+- [x] 启动 Redis（端口 16379），走通 BullMQ 入队/取出/清空。
+- [x] 真实对象存储验证：私有桶预签名上传+HEAD+下载+内容比对+匿名拒绝+删除；公开桶 SDK 上传+匿名读+删除。
+- [x] 五类 Worker 端到端真实任务全通（19/19）：artwork-analysis（匿名上传→AI 质检→回调）、artwork-deletion（DELETE→S3 物理删除→回调）、glyph-crop（DB+S3→AI 裁切→公开桶上传→回调）、source-segmentation（DB→AI 预切分→候选持久化→回调）、practice-structure（DB+S3→AI 几何比较→建议回调）。
+
+仍需执行项：
+
+- [ ] 运行上传格式伪装、截断、超大像素、并发完成/取消和拒绝对象清理。
+- [ ] 验证下架后 API、Web 标签、CDN 和旧公开图片 URL 的失效时间。
+- [ ] 演练 AI 503/超时、Redis 断连、S3 失败、API 回调断连和迟到重复回调。
+- [x] 走通五类 Worker 真实任务（质量分析/裁切/预切分/结构分析/物理删除）端到端（19/19 全通）。
 
 ### 10.4 外部人员/数据到位后
 
 - 确认 50～100 个种子字、书家、碑帖、授权范围和双人复核人。
 - 建立毛笔字 Top-K 模型、固定评测集、错误样本和真实阈值报告。
 - 让书法老师复核结构测量、建议规则、字符适用范围和禁用表达。
-- 完成 Android/iOS 真机、弱网、低端机和商店内测。
+- 完成 Android/iOS 真机、弱网、低端机和商店内测；已有模拟器安装证据不能替代本项。
 - 完成未成年人、隐私、版权、备份、告警、发布和回滚签字。
 
 ## 11. 已知缺口和禁止误报
@@ -431,20 +478,20 @@ WEB_CACHE_INVALIDATION_URL
 - 真实授权种子字库和专业双人复核。
 - 专业部件比例/主方向规则。
 - App 真机、Web/全链路性能和正式混沌报告。
-- Docker 跨服务冒烟、Staging、生产、域名/TLS。
+- Docker 本地跨服务冒烟已通过（17 项全绿：PG/Redis/BullMQ/MinIO 私有+公开桶），五类 Worker 端到端真实任务全通（19/19）；Staging、生产、域名/TLS 仍需云资源。
 - 数据库/对象存储真实恢复演练和监控告警平台。
-- 手机号/微信登录、Web HttpOnly Cookie、未成年人方案。
+- 生产短信供应商、Redis 验证码共享存储、微信登录和未成年人方案；手机号/Web Cookie 的本地接口与安全边界已有实现，但不能替代这些生产条件。
 - App 商店内测和公测上线评审。
 
 不要用下面这些替代完成证据：
 
 - 不能用手动输入页面声称 Top-K 识别已完成。
 - 不能用 seed 或后台工具声称真实种子字库已完成。
-- 不能用单元测试声称真实 S3/Redis/PostgreSQL 已验收。
-- 不能用 Dockerfile 存在声称镜像成功；当前只能声称 GitHub Actions Linux 构建通过，不能外推为本地跨服务或生产运行验收。
+- 不能用单元测试声称真实 S3/Redis/PostgreSQL 已验收。（本地冒烟已通过 17 项，五类 Worker 端到端真实任务已全通 19/19，但仍不等同于 Staging/生产验收。）
+- 不能用 Dockerfile 存在声称镜像成功；当前只能声称 GitHub Actions Linux 构建通过。Docker 29.6.2 已安装，本地跨服务冒烟已通过（17 项全绿）且五类 Worker 端到端真实任务全通（19/19），但不能外推为生产运行验收。
 - 不能用运维手册声称备份恢复、滚动回滚或告警已演练。
 - 不能用通用几何建议声称书法专家规则已通过。
-- 不能用 Android 静态导出声称 iOS/Android 内测包已发布。
+- 不能用 Android 静态导出或 Debug 证书 APK 声称 iOS/Android 内测包已正式发布。
 
 ## 12. 交接完成判定
 
@@ -457,6 +504,6 @@ WEB_CACHE_INVALIDATION_URL
 - 如何配置、生成契约、运行测试和启动服务。
 - 哪些配置已有模板，哪些必须由用户/云平台/专业人员提供。
 - 为什么当前不能公开上线。
-- 下一步为何是 AI 跨服务关联 ID 或 App 真机验收，而不是重构或换技术栈。
+- 下一步为何是 M7-06 练习内切换参照或 App 真机验收，而不是重构或换技术栈。
 
 如果以上任何一点仍不清楚，先查本文列出的权威文件和代码，不要猜测。

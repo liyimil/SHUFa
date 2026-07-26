@@ -40,4 +40,29 @@ export class IdentityController {
   revoke(@Body() body: Record<string, unknown>) {
     return this.identityService.revokeSession(body.refreshToken);
   }
+
+  @Post("sms/send")
+  @ApiOperation({ summary: "发送手机验证码" })
+  @ApiCreatedResponse({ description: "验证码已发送。" })
+  sendSms(@Body() body: { phone: string }): Promise<{ sent: true }> {
+    return this.identityService.sendVerificationCode(body.phone);
+  }
+
+  @Post("sms/verify")
+  @ApiOperation({ summary: "验证手机验证码并登录/注册/升级匿名账号" })
+  @ApiCreatedResponse({ description: "返回注册用户的访问令牌。" })
+  verifySms(
+    @Body()
+    body: {
+      anonymousRefreshToken?: string;
+      code: string;
+      phone: string;
+    },
+  ): Promise<IdentitySession> {
+    return this.identityService.verifyPhoneLogin(
+      body.phone,
+      body.code,
+      body.anonymousRefreshToken,
+    );
+  }
 }

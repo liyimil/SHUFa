@@ -35,6 +35,7 @@ export async function processArtworkDeletion(
       headers: {
         "Content-Type": "application/json",
         "X-Internal-Token": dependencies.internalToken,
+        "X-Request-Id": job.deletionId,
       },
       method: "POST",
     },
@@ -64,6 +65,7 @@ export async function reportArtworkDeletionFailure(
       headers: {
         "Content-Type": "application/json",
         "X-Internal-Token": dependencies.internalToken,
+        "X-Request-Id": job.deletionId,
       },
       method: "POST",
     },

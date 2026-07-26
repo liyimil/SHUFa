@@ -15,7 +15,11 @@ const job: SourceSegmentationJob = {
 
 describe("source segmentation worker", () => {
   it("marks processing, calls AI and persists versioned candidates", async () => {
-    const requests: Array<{ body: string; url: string }> = [];
+    const requests: Array<{
+      body: string;
+      requestId: string | null;
+      url: string;
+    }> = [];
     await processSourceSegmentation(job, {
       aiServiceUrl: "http://ai:8000",
       apiBaseUrl: "http://api:3001",
@@ -24,6 +28,7 @@ describe("source segmentation worker", () => {
         const url = String(input);
         requests.push({
           body: typeof init?.body === "string" ? init.body : "",
+          requestId: new Headers(init?.headers).get("x-request-id"),
           url,
         });
         if (url.endsWith("/v1/source-segmentation")) {
@@ -45,6 +50,10 @@ describe("source segmentation worker", () => {
       internalToken: "worker-token",
     });
     assert.equal(requests.length, 3);
+    assert.deepEqual(
+      requests.map((request) => request.requestId),
+      [job.jobId, job.jobId, job.jobId],
+    );
     assert.match(requests[0]?.url ?? "", /\/started$/);
     assert.match(requests[1]?.url ?? "", /\/v1\/source-segmentation$/);
     assert.match(requests[2]?.body ?? "", /opencv-dilate-contours-v1/);
@@ -60,6 +69,10 @@ describe("source segmentation worker", () => {
         downloadObject: () => Promise.resolve(new Uint8Array()),
         fetcher: async (_input, init) => {
           requestBody = String(init?.body ?? "");
+          assert.equal(
+            new Headers(init?.headers).get("x-request-id"),
+            job.jobId,
+          );
           return Response.json({ status: "FAILED" });
         },
         internalToken: "worker-token",

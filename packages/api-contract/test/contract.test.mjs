@@ -18,15 +18,15 @@ function operations() {
 describe("generated OpenAPI contract", () => {
   it("tracks every Nest public operation with a stable operation id", () => {
     const all = operations();
-    assert.equal(all.length, 73);
-    assert.equal(new Set(all.map(({ operationId }) => operationId)).size, 73);
+    assert.equal(all.length, 80);
+    assert.equal(new Set(all.map(({ operationId }) => operationId)).size, 80);
   });
 
   it("provides response schemas for every client operation", () => {
     const typed = operations().filter(
       (operation) => operation["x-client-contract"] === true,
     );
-    assert.equal(typed.length, 73);
+    assert.equal(typed.length, 80);
     for (const operation of typed) {
       assert.ok(
         Object.values(operation.responses).some((response) => {
@@ -144,6 +144,37 @@ describe("generated OpenAPI contract", () => {
         ({ name }) => name === "artworkId",
       ).required,
       true,
+    );
+  });
+
+  it("types phone, Web cookie session, and reference-glyph operations", () => {
+    const byId = Object.fromEntries(
+      operations().map((operation) => [operation.operationId, operation]),
+    );
+    for (const operationId of [
+      "IdentityController_sendSms",
+      "IdentityController_verifySms",
+      "WebIdentityController_verifySmsWebSession",
+      "PracticeController_switchGlyph",
+    ]) {
+      assert.ok(
+        byId[operationId].requestBody.content["application/json"].schema.$ref,
+        `${operationId} has no request schema`,
+      );
+    }
+    assert.equal(
+      byId.WebIdentityController_createAnonymousWebSession.responses[201]
+        .content["application/json"].schema.$ref,
+      "#/components/schemas/WebIdentitySession",
+    );
+    assert.deepEqual(byId.PracticeController_switchGlyph.security, [
+      { bearer: [] },
+    ]);
+    assert.equal(
+      byId.PracticeController_switchGlyph.parameters.find(
+        ({ name }) => name === "sessionId",
+      ).schema.format,
+      "uuid",
     );
   });
 

@@ -23,6 +23,10 @@ describe("practice structure worker", () => {
         downloadUser: () => Promise.resolve(new Uint8Array([4, 5, 6])),
         fetcher: async (_input, init) => {
           requests += 1;
+          assert.equal(
+            new Headers(init?.headers).get("x-request-id"),
+            "ebbc505b-7df5-4ce7-8f3a-33dc07c4a957",
+          );
           if (requests === 1) {
             assert.ok(init?.body instanceof FormData);
             return new Response(
@@ -79,6 +83,10 @@ describe("practice structure worker", () => {
         apiBaseUrl: "http://api:3001",
         fetcher: async (_input, init) => {
           callbackBody = JSON.parse(String(init?.body));
+          assert.equal(
+            new Headers(init?.headers).get("x-request-id"),
+            "ebbc505b-7df5-4ce7-8f3a-33dc07c4a957",
+          );
           return new Response("{}", { status: 201 });
         },
         internalToken: "worker-token",

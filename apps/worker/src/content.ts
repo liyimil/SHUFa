@@ -48,7 +48,11 @@ export async function processGlyphCrop(
 
   const cropResponse = await dependencies.fetcher(
     `${normalized(dependencies.aiServiceUrl)}/v1/glyph-crop`,
-    { body: form, method: "POST" },
+    {
+      body: form,
+      headers: { "X-Request-Id": job.glyphId },
+      method: "POST",
+    },
   );
   if (!cropResponse.ok) {
     throw new Error(`Glyph crop failed (${cropResponse.status}).`);
@@ -84,6 +88,7 @@ export async function processGlyphCrop(
       headers: {
         "Content-Type": "application/json",
         "X-Internal-Token": dependencies.internalToken,
+        "X-Request-Id": job.glyphId,
       },
       method: "POST",
     },

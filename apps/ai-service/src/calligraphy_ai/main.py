@@ -1,11 +1,19 @@
+import json
+import logging
+import re
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
+from time import perf_counter
 from typing import Annotated, Literal
+from uuid import uuid4
 
-from fastapi import FastAPI, File, Form, HTTPException, Response, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from pydantic import BaseModel
 
+from calligraphy_ai.component import ComponentAnalysisResult, analyze_components
 from calligraphy_ai.crop import crop_glyph_bytes
 from calligraphy_ai.quality import ImageQualityResult, InvalidImageError, analyze_image_bytes
+from calligraphy_ai.recognition import RecognitionResult, recognize_glyph
 from calligraphy_ai.segmentation import SourceSegmentationResult, segment_source_bytes
 from calligraphy_ai.structure import (
     GlyphNormalizationPreview,
@@ -13,6 +21,15 @@ from calligraphy_ai.structure import (
     compare_structure,
     normalization_preview,
 )
+
+REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
+HTTP_LOGGER = logging.getLogger("calligraphy_ai.http")
+if not HTTP_LOGGER.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("%(message)s"))
+    HTTP_LOGGER.addHandler(_handler)
+HTTP_LOGGER.setLevel(logging.INFO)
+HTTP_LOGGER.propagate = False
 
 
 class HealthResponse(BaseModel):
@@ -26,6 +43,54 @@ app = FastAPI(
     description="图片质量、单字识别和结构分析的内部服务边界",
     version="0.1.0",
 )
+
+
+@app.middleware("http")
+async def request_metadata_middleware(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
+) -> Response:
+    supplied_request_id = request.headers.get("x-request-id", "")
+    request_id = (
+        supplied_request_id if REQUEST_ID_PATTERN.fullmatch(supplied_request_id) else str(uuid4())
+    )
+    started_at = perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception:
+        HTTP_LOGGER.info(
+            json.dumps(
+                {
+                    "durationMs": round((perf_counter() - started_at) * 1_000),
+                    "event": "ai_http_request_completed",
+                    "method": request.method,
+                    "path": request.url.path,
+                    "requestId": request_id,
+                    "statusCode": 500,
+                },
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            )
+        )
+        raise
+    response.headers["X-Request-Id"] = request_id
+    HTTP_LOGGER.info(
+        json.dumps(
+            {
+                "durationMs": round((perf_counter() - started_at) * 1_000),
+                "event": "ai_http_request_completed",
+                "method": request.method,
+                "path": request.url.path,
+                "requestId": request_id,
+                "statusCode": response.status_code,
+            },
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+    )
+    return response
 
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])
@@ -154,4 +219,59 @@ async def preview_glyph_normalization(
         raise HTTPException(
             status_code=422,
             detail={"code": "INVALID_NORMALIZATION_IMAGE", "message": str(error)},
+        ) from error
+
+
+@app.post(
+    "/v1/glyph-recognition",
+    response_model=RecognitionResult,
+    tags=["analysis"],
+)
+async def recognize_glyph_endpoint(
+    file: Annotated[UploadFile, File()],
+) -> RecognitionResult:
+    """Degraded recognition endpoint.
+
+    Returns a DEGRADED status indicating the ML model is not yet available.
+    This allows the API to handle the response gracefully.
+    """
+    if file.content_type not in {"image/jpeg", "image/png", "image/webp"}:
+        raise HTTPException(status_code=415, detail={"code": "UNSUPPORTED_IMAGE_TYPE"})
+    image_bytes = await file.read(10 * 1024 * 1024 + 1)
+    if len(image_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail={"code": "IMAGE_TOO_LARGE"})
+    try:
+        return recognize_glyph(image_bytes)
+    except InvalidImageError as error:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "INVALID_RECOGNITION_IMAGE", "message": str(error)},
+        ) from error
+
+
+@app.post(
+    "/v1/component-analysis",
+    response_model=ComponentAnalysisResult,
+    tags=["analysis"],
+)
+async def analyze_component_ratios(
+    file: Annotated[UploadFile, File()],
+) -> ComponentAnalysisResult:
+    """Degraded component analysis endpoint.
+
+    Returns an UNAVAILABLE status indicating that validated per-character
+    annotation rules are not yet available. This allows the API to handle
+    the response gracefully and abstain from fake conclusions.
+    """
+    if file.content_type not in {"image/jpeg", "image/png", "image/webp"}:
+        raise HTTPException(status_code=415, detail={"code": "UNSUPPORTED_IMAGE_TYPE"})
+    image_bytes = await file.read(10 * 1024 * 1024 + 1)
+    if len(image_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail={"code": "IMAGE_TOO_LARGE"})
+    try:
+        return analyze_components(image_bytes)
+    except InvalidImageError as error:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "INVALID_COMPONENT_IMAGE", "message": str(error)},
         ) from error

@@ -47,7 +47,11 @@ export async function processArtworkAnalysis(
   );
   const qualityResponse = await dependencies.fetcher(
     `${normalizeUrl(dependencies.aiServiceUrl)}/v1/image-quality`,
-    { body: form, method: "POST" },
+    {
+      body: form,
+      headers: { "X-Request-Id": job.analysisId },
+      method: "POST",
+    },
   );
   if (!qualityResponse.ok) {
     throw new Error(
@@ -63,6 +67,7 @@ export async function processArtworkAnalysis(
       headers: {
         "Content-Type": "application/json",
         "X-Internal-Token": dependencies.internalToken,
+        "X-Request-Id": job.analysisId,
       },
       method: "POST",
     },
@@ -92,6 +97,7 @@ export async function reportArtworkAnalysisFailure(
       headers: {
         "Content-Type": "application/json",
         "X-Internal-Token": dependencies.internalToken,
+        "X-Request-Id": job.analysisId,
       },
       method: "POST",
     },

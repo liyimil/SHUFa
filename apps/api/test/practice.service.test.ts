@@ -151,6 +151,9 @@ class MemoryPracticeRepository implements PracticeRepository {
   recordAdvice() {
     return Promise.resolve(true);
   }
+  switchPracticeGlyph(): Promise<PracticeRecord | null> {
+    return Promise.resolve(record);
+  }
   requestArtworkDeletion() {
     return Promise.resolve({
       artworkId,
@@ -321,6 +324,62 @@ describe("PracticeService", () => {
       "https://private.example/users/test/artwork.jpg",
     );
     assert.match(result.master.imageUrl ?? "", /content\/glyphs\/master.webp$/);
+  });
+
+  it("switches the reference glyph and re-schedules analysis", async () => {
+    const queue = new MemoryPracticeQueue();
+    const repository = new MemoryPracticeRepository();
+    const service = new PracticeService(
+      repository,
+      new MemoryStorage(),
+      queue,
+      new MemoryArtworkDeletionQueue(),
+      allowingPrivacyService,
+    );
+    const newGlyphId = "a1b2c3d4-e5f6-1234-abcd-ef1234567890";
+    const result = await service.switchGlyph("user-id", sessionId, {
+      glyphId: newGlyphId,
+    });
+    assert.equal(result.id, sessionId);
+    assert.equal(result.attempts[0]?.advice, null);
+    assert.ok(queue.job, "analysis should be re-scheduled after glyph switch");
+  });
+
+  it("rejects an invalid glyphId when switching", async () => {
+    const service = new PracticeService(
+      new MemoryPracticeRepository(),
+      new MemoryStorage(),
+      new MemoryPracticeQueue(),
+      new MemoryArtworkDeletionQueue(),
+      allowingPrivacyService,
+    );
+    await assert.rejects(() =>
+      service.switchGlyph("user-id", sessionId, { glyphId: "not-a-uuid" }),
+    );
+  });
+
+  it("throws BadRequest when glyph is not switchable", async () => {
+    const repository = new MemoryPracticeRepository();
+    repository.switchPracticeGlyph = () =>
+      Promise.resolve(null as PracticeRecord | null);
+    const service = new PracticeService(
+      repository,
+      new MemoryStorage(),
+      new MemoryPracticeQueue(),
+      new MemoryArtworkDeletionQueue(),
+      allowingPrivacyService,
+    );
+    await assert.rejects(
+      () =>
+        service.switchGlyph("user-id", sessionId, {
+          glyphId: "a1b2c3d4-e5f6-1234-abcd-ef1234567890",
+        }),
+      (err: { status: number; response: { code: string } }) => {
+        assert.equal(err.status, 400);
+        assert.equal(err.response.code, "GLYPH_NOT_SWITCHABLE");
+        return true;
+      },
+    );
   });
 
   it("keeps a failed analysis terminal during practice polling", async () => {

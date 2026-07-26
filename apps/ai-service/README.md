@@ -17,3 +17,5 @@ uv run uvicorn calligraphy_ai.main:app --reload --port 8000
 
 `uv.lock` 是 Python 3.12 的权威依赖快照。修改 `pyproject.toml` 后必须显式运行
 `uv lock` 并提交锁文件；CI 使用 `--locked`，不会静默改写依赖解析结果。
+
+Worker 调用必须携带由任务领域 UUID 构成的 `X-Request-Id`。AI 会验证并在响应中回显该值，同时输出只包含方法、固定路径、状态、耗时和 `requestId` 的 JSON 完成日志；不记录查询串、上传文件名、图片内容、请求体或对象键。

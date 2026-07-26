@@ -107,6 +107,7 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
         analysisId: job.data.analysisId,
         event: "artwork_analysis_completed",
         jobId: job.id,
+        requestId: job.data.analysisId,
       }),
     );
   });
@@ -117,6 +118,7 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
         error: sanitizeDiagnosticMessage(error),
         event: "artwork_analysis_failed",
         jobId: job?.id,
+        requestId: job?.data.analysisId,
       }),
     );
     const attempts = Number(job?.opts.attempts ?? 1);
@@ -128,6 +130,7 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
               analysisId: job.data.analysisId,
               error: sanitizeDiagnosticMessage(callbackError),
               event: "artwork_analysis_failure_callback_failed",
+              requestId: job.data.analysisId,
             }),
           );
         },
@@ -155,6 +158,16 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
       }),
     { connection: redisConnection(), concurrency: 2 },
   );
+  contentWorker.on("completed", (job) => {
+    console.log(
+      JSON.stringify({
+        event: "glyph_crop_completed",
+        glyphId: job.data.glyphId,
+        jobId: job.id,
+        requestId: job.data.glyphId,
+      }),
+    );
+  });
   contentWorker.on("failed", (job, error) => {
     console.error(
       JSON.stringify({
@@ -162,6 +175,7 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
         event: "glyph_crop_failed",
         glyphId: job?.data.glyphId,
         jobId: job?.id,
+        requestId: job?.data.glyphId,
       }),
     );
   });
@@ -170,12 +184,23 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
     (job) => processSourceSegmentation(job.data, dependencies),
     { connection: redisConnection(), concurrency: 1 },
   );
+  segmentationWorker.on("completed", (job) => {
+    console.log(
+      JSON.stringify({
+        event: "source_segmentation_completed",
+        jobId: job.id,
+        requestId: job.data.jobId,
+        segmentationJobId: job.data.jobId,
+      }),
+    );
+  });
   segmentationWorker.on("failed", (job, error) => {
     console.error(
       JSON.stringify({
         error: sanitizeDiagnosticMessage(error),
         event: "source_segmentation_failed",
         jobId: job?.id,
+        requestId: job?.data.jobId,
         segmentationJobId: job?.data.jobId,
       }),
     );
@@ -187,6 +212,7 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
             JSON.stringify({
               error: sanitizeDiagnosticMessage(callbackError),
               event: "source_segmentation_failure_callback_failed",
+              requestId: job.data.jobId,
               segmentationJobId: job.data.jobId,
             }),
           );
@@ -214,6 +240,16 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
       }),
     { connection: redisConnection(), concurrency: 2 },
   );
+  practiceWorker.on("completed", (job) => {
+    console.log(
+      JSON.stringify({
+        attemptId: job.data.attemptId,
+        event: "practice_analysis_completed",
+        jobId: job.id,
+        requestId: job.data.attemptId,
+      }),
+    );
+  });
   practiceWorker.on("failed", (job, error) => {
     console.error(
       JSON.stringify({
@@ -221,6 +257,7 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
         error: sanitizeDiagnosticMessage(error),
         event: "practice_analysis_failed",
         jobId: job?.id,
+        requestId: job?.data.attemptId,
       }),
     );
     const attempts = Number(job?.opts.attempts ?? 1);
@@ -232,6 +269,7 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
               attemptId: job.data.attemptId,
               error: sanitizeDiagnosticMessage(callbackError),
               event: "practice_analysis_failure_callback_failed",
+              requestId: job.data.attemptId,
             }),
           );
         },
@@ -260,6 +298,7 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
         deletionId: job.data.deletionId,
         event: "artwork_deletion_completed",
         jobId: job.id,
+        requestId: job.data.deletionId,
       }),
     );
   });
@@ -271,6 +310,7 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
         error: sanitizeDiagnosticMessage(error),
         event: "artwork_deletion_failed",
         jobId: job?.id,
+        requestId: job?.data.deletionId,
       }),
     );
     const attempts = Number(job?.opts.attempts ?? 1);
@@ -282,6 +322,7 @@ export function startWorker(): Worker<ArtworkAnalysisJob> {
               deletionId: job.data.deletionId,
               error: sanitizeDiagnosticMessage(callbackError),
               event: "artwork_deletion_failure_callback_failed",
+              requestId: job.data.deletionId,
             }),
           );
         },
