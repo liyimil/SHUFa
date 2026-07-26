@@ -20,10 +20,14 @@ function normalized(value: string): string {
   return value.replace(/\/$/, "");
 }
 
-function internalHeaders(token: string): Record<string, string> {
+function internalHeaders(
+  token: string,
+  requestId: string,
+): Record<string, string> {
   return {
     "Content-Type": "application/json",
     "X-Internal-Token": token,
+    "X-Request-Id": requestId,
   };
 }
 
@@ -35,7 +39,7 @@ export async function processSourceSegmentation(
   const started = await dependencies.fetcher(
     `${apiBaseUrl}/api/v1/internal/content/segmentation-jobs/${encodeURIComponent(job.jobId)}/started`,
     {
-      headers: internalHeaders(dependencies.internalToken),
+      headers: internalHeaders(dependencies.internalToken, job.jobId),
       method: "POST",
     },
   );
@@ -54,7 +58,11 @@ export async function processSourceSegmentation(
   );
   const segmentation = await dependencies.fetcher(
     `${normalized(dependencies.aiServiceUrl)}/v1/source-segmentation`,
-    { body: form, method: "POST" },
+    {
+      body: form,
+      headers: { "X-Request-Id": job.jobId },
+      method: "POST",
+    },
   );
   if (!segmentation.ok) {
     throw new Error(`Source segmentation failed (${segmentation.status}).`);
@@ -80,7 +88,7 @@ export async function processSourceSegmentation(
         algorithmVersion: body.algorithmVersion,
         candidates: body.candidates,
       }),
-      headers: internalHeaders(dependencies.internalToken),
+      headers: internalHeaders(dependencies.internalToken, job.jobId),
       method: "POST",
     },
   );
@@ -103,7 +111,7 @@ export async function reportSourceSegmentationFailure(
         failureCode: "SEGMENTATION_WORKER_FAILED",
         failureMessage: sanitizeDiagnosticMessage(error, 1_000),
       }),
-      headers: internalHeaders(dependencies.internalToken),
+      headers: internalHeaders(dependencies.internalToken, job.jobId),
       method: "POST",
     },
   );

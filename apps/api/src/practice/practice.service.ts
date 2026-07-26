@@ -281,6 +281,27 @@ export class PracticeService {
     return this.toView(result);
   }
 
+  async switchGlyph(
+    userId: string,
+    sessionId: string,
+    raw: Record<string, unknown>,
+  ): Promise<PracticeView> {
+    const result = await this.repository.switchPracticeGlyph(
+      userId,
+      uuid(sessionId, "练习记录"),
+      uuid(raw.glyphId, "范字"),
+    );
+    if (!result) {
+      throw new BadRequestException({
+        code: "GLYPH_NOT_SWITCHABLE",
+        message:
+          "练习记录不存在或范字不符合切换条件（须同字、已发布、权利有效）。",
+      });
+    }
+    await this.scheduleAnalysis(result);
+    return this.toView(result);
+  }
+
   async listPractices(userId: string) {
     const records = await this.repository.listPractices(userId);
     await Promise.all(records.map((record) => this.scheduleAnalysis(record)));

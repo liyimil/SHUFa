@@ -25,7 +25,12 @@
       "package": "com.calligraphy.learning",
       "adaptiveIcon": {
         "backgroundColor": "#F3EBDD"
-      }
+      },
+      "permissions": ["android.permission.CAMERA"]
+    },
+    "splash": {
+      "backgroundColor": "#F3EBDD",
+      "resizeMode": "contain"
     }
   }
 }

@@ -7,7 +7,15 @@ AI 服务保持独立 Python 运行环境，当前提供健康检查、图片质
 这些输出只描述可复核的几何现象，不承担艺术水平评判；手写单字 Top-K 识别仍需真实模型和固定评测集。
 
 ```powershell
-py -3.12 -m venv .venv
-.venv\Scripts\python -m pip install -e ".[dev]"
-.venv\Scripts\python -m uvicorn calligraphy_ai.main:app --reload --port 8000
+uv sync --locked --extra dev
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy
+uv run pytest
+uv run uvicorn calligraphy_ai.main:app --reload --port 8000
 ```
+
+`uv.lock` 是 Python 3.12 的权威依赖快照。修改 `pyproject.toml` 后必须显式运行
+`uv lock` 并提交锁文件；CI 使用 `--locked`，不会静默改写依赖解析结果。
+
+Worker 调用必须携带由任务领域 UUID 构成的 `X-Request-Id`。AI 会验证并在响应中回显该值，同时输出只包含方法、固定路径、状态、耗时和 `requestId` 的 JSON 完成日志；不记录查询串、上传文件名、图片内容、请求体或对象键。

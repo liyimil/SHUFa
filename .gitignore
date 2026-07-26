@@ -9,6 +9,10 @@ node_modules/
 build/
 dist/
 coverage/
+playwright-report/
+test-results/
+lighthouse-results/
+.lighthouseci/
 *.tsbuildinfo
 apps/api/src/generated/prisma/
 

@@ -4,12 +4,6 @@
     "noUncheckedIndexedAccess": true,
     "strict": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "index.ts",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "index.ts"],
   "exclude": ["test"]
 }

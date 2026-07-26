@@ -8,10 +8,10 @@ from pydantic import BaseModel, Field
 
 from calligraphy_ai.quality import _decode_grayscale
 
-NORMALIZATION_VERSION = "glyph-normalization-v1"
-MEASUREMENT_VERSION = "structure-measurement-v2"
-RULE_VERSION = "structure-v1"
-MODEL_VERSION = "no-ml-geometry-v1"
+NORMALIZATION_VERSION: Literal["glyph-normalization-v1"] = "glyph-normalization-v1"
+MEASUREMENT_VERSION: Literal["structure-measurement-v2"] = "structure-measurement-v2"
+RULE_VERSION: Literal["structure-v1"] = "structure-v1"
+MODEL_VERSION: Literal["no-ml-geometry-v1"] = "no-ml-geometry-v1"
 CANVAS_SIZE = 512
 
 StructureAnomaly = Literal[
@@ -71,9 +71,9 @@ class StructureSuggestion(BaseModel):
 
 
 class StructureComparison(BaseModel):
-    advanced_analysis_status: Literal[
+    advanced_analysis_status: Literal["UNAVAILABLE_NO_VALIDATED_CHARACTER_RULE"] = (
         "UNAVAILABLE_NO_VALIDATED_CHARACTER_RULE"
-    ] = "UNAVAILABLE_NO_VALIDATED_CHARACTER_RULE"
+    )
     master: StructureMetrics
     measurement_version: Literal["structure-measurement-v2"] = MEASUREMENT_VERSION
     model_version: Literal["no-ml-geometry-v1"] = MODEL_VERSION
@@ -106,9 +106,7 @@ def _normalize_grayscale(image_bytes: bytes) -> tuple[np.ndarray, NormalizationT
 
 
 def _foreground_mask(grayscale: np.ndarray) -> np.ndarray:
-    _, threshold = cv2.threshold(
-        grayscale, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
-    )
+    _, threshold = cv2.threshold(grayscale, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     return threshold > 0
 
 
@@ -210,9 +208,7 @@ def measure_structure(image_bytes: bytes) -> StructureMetrics:
 
 def normalization_preview(image_bytes: bytes) -> GlyphNormalizationPreview:
     grayscale, transform = _normalize_grayscale(image_bytes)
-    anomalies, confidence, foreground_ratio = _measurement_quality(
-        _foreground_mask(grayscale)
-    )
+    anomalies, confidence, foreground_ratio = _measurement_quality(_foreground_mask(grayscale))
     return GlyphNormalizationPreview(
         anomalies=anomalies,
         confidence=confidence,

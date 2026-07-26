@@ -793,4 +793,53 @@ export class PrismaPracticeRepository implements PracticeRepository {
       return true;
     });
   }
+
+  async switchPracticeGlyph(
+    userId: string,
+    sessionId: string,
+    glyphId: string,
+  ) {
+    const now = new Date();
+    const session = await this.prisma.practiceSession.findFirst({
+      select: { characterId: true },
+      where: { id: sessionId, userId },
+    });
+    if (!session) return null;
+
+    const glyph = await this.prisma.glyph.findFirst({
+      where: {
+        characterId: session.characterId,
+        contentStatus: "PUBLISHED",
+        id: glyphId,
+        sourceAsset: {
+          rightsRecord: {
+            OR: [{ validUntil: null }, { validUntil: { gt: now } }],
+            status: "CLEARED_PUBLIC",
+          },
+        },
+      },
+      select: { id: true },
+    });
+    if (!glyph) return null;
+
+    await this.prisma.$transaction([
+      this.prisma.practiceAnalysisRun.deleteMany({
+        where: { attempt: { sessionId } },
+      }),
+      this.prisma.practiceAttempt.updateMany({
+        data: { adviceSnapshot: Prisma.DbNull },
+        where: { sessionId },
+      }),
+      this.prisma.practiceSession.update({
+        data: { selectedGlyphId: glyph.id },
+        where: { id: sessionId },
+      }),
+    ]);
+
+    const updated = await this.prisma.practiceSession.findUnique({
+      select: practiceSelect,
+      where: { id: sessionId },
+    });
+    return updated ? mapPractice(updated) : null;
+  }
 }

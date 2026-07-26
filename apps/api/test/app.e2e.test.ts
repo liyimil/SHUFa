@@ -3,10 +3,18 @@ import { after, before, describe, it } from "node:test";
 
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
+import cookieParser from "cookie-parser";
 import sharp from "sharp";
 import request from "supertest";
 
-import { AppModule } from "../src/app.module.js";
+// Set high rate limit before loading AppModule
+process.env.RATE_LIMIT_MAX = "10000";
+const { AppModule } = await import("../src/app.module.js");
+import {
+  corsConfiguration,
+  helmetMiddleware,
+  requestMetadataMiddleware,
+} from "../src/http-boundary.js";
 import {
   ARTWORK_DELETION_QUEUE,
   type ArtworkDeletionJob,
@@ -87,7 +95,10 @@ const repository: CatalogRepository = {
 const identityRepository: IdentityRepository = {
   createAnonymousUserWithSession: () =>
     Promise.resolve({ userId: "3fe537fd-6601-43f0-a31d-781bd5bde945" }),
+  createRegisteredUserWithSession: () =>
+    Promise.resolve({ userId: "3fe537fd-6601-43f0-a31d-781bd5bde945" }),
   createSessionForUser: () => Promise.resolve(),
+  findUserByPhoneHash: () => Promise.resolve(null),
   isActiveUser: () => Promise.resolve(true),
   revokeSession: () => Promise.resolve(),
   rotateSession: () =>
@@ -95,6 +106,7 @@ const identityRepository: IdentityRepository = {
       kind: "anonymous",
       userId: "3fe537fd-6601-43f0-a31d-781bd5bde945",
     }),
+  upgradeAnonymousWithSession: () => Promise.resolve(null),
 };
 
 let privacyRecord: PrivacyPreferencesRecord = {
@@ -198,6 +210,7 @@ const practiceRepository: PracticeRepository = {
     return Promise.resolve(true);
   },
   recordAdvice: () => Promise.resolve(true),
+  switchPracticeGlyph: () => Promise.resolve(practiceRecord),
   requestArtworkDeletion: () => {
     practiceShareRevoked = true;
     practiceDeletionStatus = "PENDING";
@@ -385,6 +398,10 @@ describe("application HTTP boundary", () => {
       .compile();
 
     app = module.createNestApplication();
+    app.use(cookieParser());
+    app.use(helmetMiddleware);
+    app.use(requestMetadataMiddleware);
+    app.enableCors({ ...corsConfiguration(), credentials: true });
     app.setGlobalPrefix("api/v1");
     await app.init();
   });
@@ -401,10 +418,17 @@ describe("application HTTP boundary", () => {
   it("serves health status", async () => {
     const response = await request(app.getHttpServer())
       .get("/api/v1/health")
+      .set("Origin", "http://localhost:3000")
+      .set("X-Request-Id", "test-request-123")
       .expect(200);
 
     assert.equal(response.body.service, "api");
     assert.equal(response.body.status, "ok");
+    assert.equal(response.headers["x-request-id"], "test-request-123");
+    assert.match(
+      response.headers["access-control-expose-headers"] ?? "",
+      /X-Request-Id/i,
+    );
   });
 
   it("serves a validated empty catalog result", async () => {
@@ -794,5 +818,44 @@ describe("application HTTP boundary", () => {
       .expect(200);
     assert.equal(deletionStatus.body.status, "DELETED");
     assert.equal(practiceArtworkDeleted, true);
+  });
+
+  it("creates a web cookie session and refreshes via cookie", async () => {
+    const created = await request(app.getHttpServer())
+      .post("/api/v1/identity/web/anonymous")
+      .expect(201);
+
+    assert.ok(created.body.accessToken);
+    assert.equal(created.body.user.kind, "anonymous");
+    const cookies = created.headers["set-cookie"] as unknown as string[];
+    assert.ok(cookies, "Expected Set-Cookie header");
+    const refreshCookie = cookies.find((c: string) =>
+      c.startsWith("calligraphy_rt="),
+    );
+    assert.ok(refreshCookie, "Expected refresh token cookie");
+    assert.match(refreshCookie!, /HttpOnly/i);
+    assert.match(refreshCookie!, /Path=\/api\/v1\/identity/i);
+
+    const refreshed = await request(app.getHttpServer())
+      .post("/api/v1/identity/web/refresh")
+      .set("Cookie", refreshCookie)
+      .expect(201);
+
+    assert.ok(refreshed.body.accessToken);
+    assert.equal(refreshed.body.user.kind, "anonymous");
+    const refreshedCookies = refreshed.headers[
+      "set-cookie"
+    ] as unknown as string[];
+    const refreshedRefreshCookie = refreshedCookies?.find((c: string) =>
+      c.startsWith("calligraphy_rt="),
+    );
+    assert.ok(refreshedRefreshCookie, "Expected new refresh token cookie");
+
+    const revoked = await request(app.getHttpServer())
+      .post("/api/v1/identity/web/revoke")
+      .set("Cookie", refreshedRefreshCookie)
+      .expect(201);
+
+    assert.equal(revoked.body.revoked, true);
   });
 });

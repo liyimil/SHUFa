@@ -56,6 +56,16 @@ export class PracticeController {
     return this.service.addAttempt(user.id, sessionId, body);
   }
 
+  @Patch("practices/:sessionId/glyph")
+  @ApiOperation({ summary: "切换练习会话的参考范字" })
+  switchGlyph(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("sessionId") sessionId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.service.switchGlyph(user.id, sessionId, body);
+  }
+
   @Post("practices/:sessionId/shares")
   createShare(
     @CurrentUser() user: AuthenticatedUser,

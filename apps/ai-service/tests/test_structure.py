@@ -7,9 +7,7 @@ from calligraphy_ai.main import app
 from calligraphy_ai.structure import compare_structure, normalization_preview
 
 
-def _image_with_block_size(
-    size: tuple[int, int], box: tuple[int, int, int, int]
-) -> bytes:
+def _image_with_block_size(size: tuple[int, int], box: tuple[int, int, int, int]) -> bytes:
     image = Image.new("L", size, "white")
     ImageDraw.Draw(image).rectangle(box, fill="black")
     output = BytesIO()
@@ -43,9 +41,7 @@ def test_comparison_explains_horizontal_center_difference() -> None:
 
 
 def test_normalization_preserves_aspect_and_reports_transform() -> None:
-    preview = normalization_preview(
-        _image_with_block_size((400, 200), (100, 50, 300, 150))
-    )
+    preview = normalization_preview(_image_with_block_size((400, 200), (100, 50, 300, 150)))
 
     assert preview.transform.version == "glyph-normalization-v1"
     assert preview.transform.source_width == 400
@@ -61,9 +57,9 @@ def test_fixed_input_is_exactly_reproducible() -> None:
     master = _image_with_block((150, 100, 350, 400))
     user = _image_with_block((250, 100, 450, 400))
 
-    assert compare_structure(user, master).model_dump() == compare_structure(
-        user, master
-    ).model_dump()
+    assert (
+        compare_structure(user, master).model_dump() == compare_structure(user, master).model_dump()
+    )
 
 
 def test_low_confidence_abstains_from_advice() -> None:
@@ -76,10 +72,7 @@ def test_low_confidence_abstains_from_advice() -> None:
     assert result.user.anomalies == ["NO_FOREGROUND"]
     assert result.user.confidence == 0
     assert result.suggestions == []
-    assert (
-        result.advanced_analysis_status
-        == "UNAVAILABLE_NO_VALIDATED_CHARACTER_RULE"
-    )
+    assert result.advanced_analysis_status == "UNAVAILABLE_NO_VALIDATED_CHARACTER_RULE"
 
 
 def test_normalization_endpoint_returns_parameters_without_an_image_copy() -> None:

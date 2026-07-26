@@ -1,227 +1,79 @@
-export interface AdminSession {
-  accessToken: string;
-  staff: { email: string; roles: string[] };
-}
+import { readApiClientError, type operations } from "@calligraphy/api-contract";
 
-export interface AdminCalligrapher {
-  biography: string | null;
-  dynasty: string;
-  id: string;
-  isActive: boolean;
-  name: string;
+type JsonResponse<
+  Operation extends keyof operations,
+  Status extends keyof operations[Operation]["responses"],
+> = operations[Operation]["responses"][Status] extends {
+  content: { "application/json": infer Body };
 }
+  ? Body
+  : never;
 
-export interface AdminWork {
-  calligrapher: { id: string; isActive: boolean; name: string };
-  description: string | null;
-  dynasty: string;
-  id: string;
-  isActive: boolean;
-  title: string;
-}
+type JsonRequest<Operation extends keyof operations> =
+  operations[Operation] extends {
+    requestBody: { content: { "application/json": infer Body } };
+  }
+    ? Body
+    : never;
 
-export interface AdminEdition {
-  holdingInstitution: string | null;
-  id: string;
-  isActive: boolean;
-  name: string;
-  publication: string | null;
-  sourceUrl: string | null;
-  work: {
-    calligrapher: { isActive: boolean };
-    id: string;
-    isActive: boolean;
-    title: string;
-  };
-}
+export type AdminSession = JsonResponse<
+  "AdminSessionController_createSession",
+  201
+>;
+export type AdminCalligrapher = JsonResponse<
+  "ContentAdminController_listCalligraphers",
+  200
+>[number];
+export type AdminWork = JsonResponse<
+  "ContentAdminController_listWorks",
+  200
+>[number];
+export type AdminEdition = JsonResponse<
+  "ContentAdminController_listEditions",
+  200
+>[number];
+export type AdminRights = JsonResponse<
+  "ContentAdminController_listRights",
+  200
+>[number];
+export type AdminContentHistoryEntry = JsonResponse<
+  "ContentAdminController_listContentHistory",
+  200
+>[number];
+export type AdminSourceAsset = JsonResponse<
+  "ContentAdminController_listSourceAssets",
+  200
+>[number];
+export type AdminSegmentationJob = JsonResponse<
+  "ContentAdminController_listSegmentationJobs",
+  200
+>[number];
+export type AdminGlyph = JsonResponse<
+  "ContentAdminController_listGlyphs",
+  200
+>[number];
 
-export interface AdminRights {
-  allowCommercial: boolean;
-  attributionText: string | null;
-  id: string;
-  licenseName: string | null;
-  maxPublicWidth: number | null;
-  notes: string | null;
-  sourceName: string;
-  sourceUrl: string | null;
-  status: string;
-  validFrom: string | null;
-  validUntil: string | null;
-}
+export type PrivateSourceView = JsonResponse<
+  "ContentAdminController_createSourceAssetView",
+  200
+>;
 
-export interface AdminContentHistoryEntry {
-  action: string;
-  actorKey: string;
-  canRestore: boolean;
-  changes: Array<{ after: unknown; before: unknown; field: string }>;
-  createdAt: string;
-  entityId: string;
-  entityType: string;
-  id: string;
-  snapshot: unknown;
-}
-
-export interface AdminSourceAsset {
-  edition: { name: string; work: { title: string } };
-  height: number;
-  id: string;
-  pageLabel: string | null;
-  width: number;
-}
-
-export interface AdminSegmentationJob {
-  algorithmVersion: string | null;
-  candidates: Array<{
-    bboxHeight: number;
-    bboxWidth: number;
-    bboxX: number;
-    bboxY: number;
-    confidence: number;
-    annotatedAt: string | null;
-    annotatedBy: string | null;
-    glyphId: string | null;
-    id: string;
-    rejectionNote: string | null;
-    sortOrder: number;
-    status: string;
-  }>;
-  completedAt: string | null;
-  createdAt: string;
-  failureCode: string | null;
-  failureMessage: string | null;
-  id: string;
-  requestedBy: string;
-  sourceAsset: {
-    edition: { name: string; work: { title: string } };
-    height: number;
-    id: string;
-    pageLabel: string | null;
-    width: number;
-  };
-  startedAt: string | null;
-  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
-}
-
-export interface AdminGlyph {
-  authenticityGrade:
-    | "A_ORIGINAL"
-    | "B_RUBBING_OR_AUTHORIZED_EDITION"
-    | "C_MODERN_COPY"
-    | "D_AI_GENERATED";
-  bboxHeight: number;
-  bboxWidth: number;
-  bboxX: number;
-  bboxY: number;
-  beginnerWeight: number;
-  character: { value: string };
-  contentStatus: string;
-  id: string;
-  imageQuality: number;
-  annotatedBy: string | null;
-  labelCandidates: unknown;
-  observedCharacter: string | null;
-  sourceAsset: { edition: { work: { title: string } } };
-  transcription: string | null;
-}
-
-export interface PrivateSourceView {
-  expiresAt: string;
-  height: number;
-  mimeType: string;
-  url: string;
-  width: number;
-}
-
-export interface AdminContentImportBatch {
-  actorKey: string;
-  checksumSha256: string;
-  committedAt: string | null;
-  createdAt: string;
-  fileName: string;
-  id: string;
-  invalidRows: number;
-  rows: Array<{
-    errors: string[];
-    normalizedData: Record<string, unknown> | null;
-    rawData: Record<string, string>;
-    rowNumber: number;
-    targetGlyphId: string | null;
-  }>;
-  status: "INVALID" | "READY" | "COMMITTED";
-  totalRows: number;
-  validRows: number;
-}
-
-export interface AdminFeedbackTicket {
-  accurate: boolean | null;
-  assignedTo: string | null;
-  createdAt: string;
-  id: string;
-  kind:
-    | "STRUCTURE_ADVICE"
-    | "RECOGNITION_ERROR"
-    | "QUALITY_RESULT"
-    | "CONTENT_ERROR"
-    | "PRODUCT";
-  message: string | null;
-  referenceId: string | null;
-  referenceType: string | null;
-  resolutionNote: string | null;
-  resolvedAt: string | null;
-  status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "DISMISSED";
-  updatedAt: string;
-}
-
-export interface AdminAdviceSample {
-  advice: {
-    measurement_version?: string;
-    model_version?: string;
-    normalization_version?: string;
-    status?: "OK" | "LOW_CONFIDENCE";
-    suggestions?: Array<{
-      action?: string;
-      evidence?: string;
-      phenomenon?: string;
-    }>;
-    threshold_version?: string;
-  };
-  attemptCreatedAt: string;
-  attemptId: string;
-  character: string;
-  master: {
-    calligrapherName: string;
-    imageUrl: string | null;
-    workTitle: string;
-  };
-  practiceSessionId: string;
-  review: {
-    comment: string;
-    reviewedAt: string;
-    reviewerKey: string;
-    verdict: "APPROVED" | "NEEDS_ADJUSTMENT" | "NOT_APPLICABLE";
-  } | null;
-  sequence: number;
-  userImageUrl: string;
-}
-
-export interface AdminFunnelReport {
-  completionRate: number | null;
-  from: string;
-  stages: Array<{
-    conversionFromPrevious: number | null;
-    count: number;
-    name:
-      | "ARTWORK_UPLOAD_COMPLETED"
-      | "CHARACTER_CONFIRMED"
-      | "CATALOG_RESULTS_VIEWED"
-      | "GLYPH_SELECTED"
-      | "PRACTICE_CREATED"
-      | "ADVICE_VIEWED"
-      | "SECOND_ATTEMPT_STARTED"
-      | "PRACTICE_COMPLETED";
-  }>;
-  to: string;
-}
+export type AdminContentImportBatch = JsonResponse<
+  "ContentAdminController_listContentImportBatches",
+  200
+>[number];
+export type AdminFeedbackTicket = JsonResponse<
+  "AdminFeedbackController_list",
+  200
+>[number];
+export type AdminAdviceSample = JsonResponse<
+  "AdminInsightsController_listAdviceSamples",
+  200
+>[number];
+export type AdminFunnelReport = JsonResponse<
+  "AdminInsightsController_funnel",
+  200
+>;
 
 type Fetcher = typeof fetch;
 
@@ -241,10 +93,7 @@ async function requestJson<T>(
 ): Promise<T> {
   const response = await fetcher(`${adminApiBaseUrl(apiBaseUrl)}${path}`, init);
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as null | {
-      message?: string;
-    };
-    throw new Error(body?.message ?? `请求失败（${response.status}）`);
+    throw await readApiClientError(response);
   }
   return (await response.json()) as T;
 }
@@ -292,7 +141,7 @@ export async function getAdminContentText(
     { headers: { Authorization: `Bearer ${token}` }, method: "GET" },
   );
   if (!response.ok) {
-    throw new Error(`请求失败（${response.status}）`);
+    throw await readApiClientError(response);
   }
   return response.text();
 }
@@ -358,7 +207,7 @@ export function updateAdminFeedback(
   apiBaseUrl: string,
   token: string,
   feedbackId: string,
-  body: Record<string, unknown>,
+  body: JsonRequest<"AdminFeedbackController_update">,
   fetcher?: Fetcher,
 ): Promise<AdminFeedbackTicket> {
   return requestJson(
@@ -394,9 +243,9 @@ export function reviewAdminAdvice(
   apiBaseUrl: string,
   token: string,
   attemptId: string,
-  body: { comment: string; verdict: string },
+  body: JsonRequest<"AdminInsightsController_reviewAdvice">,
   fetcher?: Fetcher,
-): Promise<{ attemptId: string; status: "REVIEWED"; verdict: string }> {
+): Promise<JsonResponse<"AdminInsightsController_reviewAdvice", 200>> {
   return requestJson(
     apiBaseUrl,
     `/admin/advice-reviews/${encodeURIComponent(attemptId)}`,

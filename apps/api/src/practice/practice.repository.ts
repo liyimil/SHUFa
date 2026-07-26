@@ -107,4 +107,9 @@ export interface PracticeRepository {
     provenance: PracticeAnalysisProvenance,
     now: Date,
   ): Promise<boolean>;
+  switchPracticeGlyph(
+    userId: string,
+    sessionId: string,
+    glyphId: string,
+  ): Promise<PracticeRecord | null>;
 }

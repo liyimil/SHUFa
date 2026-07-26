@@ -9,9 +9,11 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
+    "e2e:worker:local": "pnpm --filter @calligraphy/observability build && pnpm --filter @calligraphy/api build && pnpm --filter @calligraphy/worker build && node --env-file=.env apps/api/scripts/run-worker-e2e.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint apps packages",
+    "security:audit": "pnpm audit --audit-level moderate",
     "contract:check": "pnpm --filter @calligraphy/api openapi:check && pnpm --filter @calligraphy/api-contract check",
     "contract:generate": "pnpm --filter @calligraphy/api openapi:write && pnpm --filter @calligraphy/api-contract generate",
     "test": "turbo run test",

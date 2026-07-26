@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  ApiRequestError,
   cancelArtworkUpload,
   createFavoriteGroup,
   createAnonymousSession,
@@ -58,6 +59,27 @@ describe("mobile API client", () => {
     );
 
     assert.deepEqual(session, identitySession);
+  });
+
+  it("surfaces a validated API request id with structured errors", async () => {
+    const requestId = "mobile-request-123";
+    await assert.rejects(
+      createAnonymousSession("https://api.example.com/api/v1", async () =>
+        Response.json(
+          { code: "SERVICE_BUSY", message: "服务暂时繁忙。" },
+          { headers: { "X-Request-Id": requestId }, status: 503 },
+        ),
+      ),
+      (error: unknown) => {
+        assert.ok(error instanceof ApiRequestError);
+        assert.equal(error.status, 503);
+        assert.equal(error.code, "SERVICE_BUSY");
+        assert.equal(error.requestId, requestId);
+        assert.match(error.message, /错误代码：SERVICE_BUSY/);
+        assert.match(error.message, new RegExp(requestId));
+        return true;
+      },
+    );
   });
 
   it("calls the favorite copybook grouping and ordering endpoints", async () => {

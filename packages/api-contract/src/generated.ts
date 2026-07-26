@@ -850,6 +850,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/identity/sms/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 发送手机验证码 */
+        post: operations["IdentityController_sendSms"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/sms/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 验证手机验证码并登录/注册/升级匿名账号 */
+        post: operations["IdentityController_verifySms"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/web/anonymous": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 创建匿名会话并通过 HttpOnly Cookie 下发 Refresh Token */
+        post: operations["WebIdentityController_createAnonymousWebSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/web/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 通过 HttpOnly Cookie 刷新会话 */
+        post: operations["WebIdentityController_refreshWebSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/web/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 撤销 HttpOnly Cookie 会话 */
+        post: operations["WebIdentityController_revokeWebSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/web/sms/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 通过手机验证码登录并设置 HttpOnly Cookie */
+        post: operations["WebIdentityController_verifySmsWebSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/practices": {
         parameters: {
             query?: never;
@@ -897,6 +999,23 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/practices/{sessionId}/glyph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 切换练习会话的参考范字 */
+        patch: operations["PracticeController_switchGlyph"];
         trace?: never;
     };
     "/api/v1/practices/{sessionId}/shares": {
@@ -1038,6 +1157,269 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AcceptSegmentationCandidateRequest: {
+            /** @enum {string} */
+            authenticityGrade: "A_ORIGINAL" | "B_RUBBING_OR_AUTHORIZED_EDITION" | "C_MODERN_COPY";
+            bboxHeight?: number;
+            bboxWidth?: number;
+            bboxX?: number;
+            bboxY?: number;
+            beginnerWeight?: number;
+            canonicalCharacter: string;
+            characterCandidates?: string[];
+            imageQuality?: number;
+            observedCharacter: string;
+            transcription?: string | null;
+            /** @enum {string|null} */
+            variantType?: "SIMPLIFIED" | "TRADITIONAL" | "HISTORICAL" | "COMPATIBILITY" | null;
+        };
+        AdminAdviceSample: {
+            advice: components["schemas"]["PracticeAdvice"];
+            /** Format: date-time */
+            attemptCreatedAt: string;
+            /** Format: uuid */
+            attemptId: string;
+            character: string;
+            master: {
+                calligrapherName: string;
+                /** Format: uri */
+                imageUrl: string | null;
+                workTitle: string;
+            };
+            /** Format: uuid */
+            practiceSessionId: string;
+            review: components["schemas"]["AdviceReview"] | null;
+            sequence: number;
+            /** Format: uri */
+            userImageUrl: string;
+        };
+        AdminCalligrapher: {
+            biography: string | null;
+            dynasty: string;
+            /** Format: uuid */
+            id: string;
+            isActive: boolean;
+            name: string;
+        };
+        AdminContentHistoryEntry: {
+            action: string;
+            actorKey: string;
+            canRestore: boolean;
+            changes: components["schemas"]["ContentHistoryChange"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            entityId: string;
+            /** @enum {string} */
+            entityType: "Calligrapher" | "Work" | "WorkEdition" | "RightsRecord" | "Glyph";
+            /** Format: uuid */
+            id: string;
+            snapshot: unknown;
+        };
+        AdminContentImportBatch: {
+            actorKey: string;
+            checksumSha256: string;
+            /** Format: date-time */
+            committedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            fileName: string;
+            /** Format: uuid */
+            id: string;
+            invalidRows: number;
+            rows: components["schemas"]["ContentImportRow"][];
+            /** @enum {string} */
+            status: "INVALID" | "READY" | "COMMITTED";
+            totalRows: number;
+            validRows: number;
+        };
+        AdminEdition: {
+            holdingInstitution: string | null;
+            /** Format: uuid */
+            id: string;
+            isActive: boolean;
+            name: string;
+            publication: string | null;
+            /** Format: uri */
+            sourceUrl: string | null;
+            work: {
+                calligrapher: {
+                    isActive: boolean;
+                };
+                /** Format: uuid */
+                id: string;
+                isActive: boolean;
+                title: string;
+            };
+        };
+        AdminFeedbackTicket: {
+            accurate: boolean | null;
+            assignedTo: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "STRUCTURE_ADVICE" | "RECOGNITION_ERROR" | "QUALITY_RESULT" | "CONTENT_ERROR" | "PRODUCT";
+            message: string | null;
+            /** Format: uuid */
+            referenceId: string | null;
+            referenceType: string | null;
+            resolutionNote: string | null;
+            /** Format: date-time */
+            resolvedAt: string | null;
+            /** @enum {string} */
+            status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "DISMISSED";
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminFeedbackUpdateRequest: {
+            assignedTo?: string | null;
+            resolutionNote?: string | null;
+            /** @enum {string} */
+            status?: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "DISMISSED";
+        };
+        AdminFunnelReport: {
+            completionRate: number | null;
+            /** Format: date-time */
+            from: string;
+            stages: components["schemas"]["AdminFunnelStage"][];
+            /** Format: date-time */
+            to: string;
+        };
+        AdminFunnelStage: {
+            conversionFromPrevious: number | null;
+            count: number;
+            /** @enum {string} */
+            name: "ARTWORK_UPLOAD_COMPLETED" | "CHARACTER_CONFIRMED" | "CATALOG_RESULTS_VIEWED" | "GLYPH_SELECTED" | "PRACTICE_CREATED" | "ADVICE_VIEWED" | "SECOND_ATTEMPT_STARTED" | "PRACTICE_COMPLETED";
+        };
+        AdminGlyph: {
+            annotatedBy: string | null;
+            /** @enum {string} */
+            authenticityGrade: "A_ORIGINAL" | "B_RUBBING_OR_AUTHORIZED_EDITION" | "C_MODERN_COPY" | "D_AI_GENERATED";
+            bboxHeight: number;
+            bboxWidth: number;
+            bboxX: number;
+            bboxY: number;
+            beginnerWeight: number;
+            character: {
+                value: string;
+            };
+            contentStatus: string;
+            /** Format: uuid */
+            id: string;
+            imageQuality: number;
+            labelCandidates: unknown;
+            observedCharacter: string | null;
+            sourceAsset: {
+                edition: {
+                    work: {
+                        title: string;
+                    };
+                };
+            };
+            transcription: string | null;
+        };
+        AdminRights: {
+            allowCommercial: boolean;
+            attributionText: string | null;
+            /** Format: uuid */
+            id: string;
+            licenseName: string | null;
+            maxPublicWidth: number | null;
+            notes: string | null;
+            sourceName: string;
+            /** Format: uri */
+            sourceUrl: string | null;
+            /** @enum {string} */
+            status: "UNKNOWN" | "INTERNAL_TEST_ONLY" | "CLEARED_PUBLIC" | "RESTRICTED" | "EXPIRED";
+            /** Format: date-time */
+            validFrom: string | null;
+            /** Format: date-time */
+            validUntil: string | null;
+        };
+        AdminSegmentationJob: {
+            algorithmVersion: string | null;
+            candidates: components["schemas"]["SegmentationCandidate"][];
+            /** Format: date-time */
+            completedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            failureCode: string | null;
+            failureMessage: string | null;
+            /** Format: uuid */
+            id: string;
+            requestedBy: string;
+            sourceAsset: components["schemas"]["AdminSourceAsset"];
+            /** Format: date-time */
+            startedAt: string | null;
+            /** @enum {string} */
+            status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+        };
+        AdminSession: {
+            accessToken: string;
+            expiresInSeconds: number;
+            staff: {
+                /** Format: email */
+                email: string;
+                roles: ("EDITOR" | "REVIEWER" | "RIGHTS" | "ADMIN")[];
+            };
+            /** @enum {string} */
+            tokenType: "Bearer";
+        };
+        AdminSessionRequest: {
+            /** Format: email */
+            email: string;
+            password: string;
+        };
+        AdminSourceAsset: {
+            edition: {
+                name: string;
+                work: {
+                    title: string;
+                };
+            };
+            height: number;
+            /** Format: uuid */
+            id: string;
+            pageLabel: string | null;
+            width: number;
+        };
+        AdminWork: {
+            calligrapher: {
+                /** Format: uuid */
+                id: string;
+                isActive: boolean;
+                name: string;
+            };
+            description: string | null;
+            dynasty: string;
+            /** Format: uuid */
+            id: string;
+            isActive: boolean;
+            title: string;
+        };
+        AdviceReview: {
+            comment: string;
+            /** Format: date-time */
+            reviewedAt: string;
+            reviewerKey: string;
+            /** @enum {string} */
+            verdict: "APPROVED" | "NEEDS_ADJUSTMENT" | "NOT_APPLICABLE";
+        };
+        AdviceReviewRequest: {
+            comment: string;
+            /** @enum {string} */
+            verdict: "APPROVED" | "NEEDS_ADJUSTMENT" | "NOT_APPLICABLE";
+        };
+        AdviceReviewResult: {
+            /** Format: uuid */
+            attemptId: string;
+            /** @enum {string} */
+            status: "REVIEWED";
+            /** @enum {string} */
+            verdict: "APPROVED" | "NEEDS_ADJUSTMENT" | "NOT_APPLICABLE";
+        };
         ArtworkAnalysis: {
             findings: components["schemas"]["QualityFinding"][];
             metrics: components["schemas"]["QualityMetrics"] | null;
@@ -1105,6 +1487,10 @@ export interface components {
         CharacterConfirmationResult: {
             character: string;
         };
+        CompleteSourceUploadResult: {
+            /** Format: uuid */
+            sourceAssetId: string;
+        };
         CompleteUploadResult: {
             /** Format: uuid */
             analysisId: string;
@@ -1115,14 +1501,123 @@ export interface components {
             /** Format: date-time */
             uploadedAt: string;
         };
+        ContentHistoryChange: {
+            after: unknown;
+            before: unknown;
+            field: string;
+        };
+        ContentImportCommitResult: {
+            /** Format: uuid */
+            batchId: string;
+            glyphCount: number;
+            /** @enum {string} */
+            status: "COMMITTED";
+        };
+        ContentImportPreviewRequest: {
+            csvText: string;
+            fileName: string;
+        };
+        ContentImportRow: {
+            errors: string[];
+            normalizedData: {
+                [key: string]: unknown;
+            } | null;
+            rawData: {
+                [key: string]: string;
+            };
+            rowNumber: number;
+            /** Format: uuid */
+            targetGlyphId: string | null;
+        };
+        CreateCalligrapherRequest: {
+            biography?: string | null;
+            dynasty: string;
+            name: string;
+        };
+        CreateEditionRequest: {
+            holdingInstitution?: string | null;
+            name: string;
+            publication?: string | null;
+            /** Format: uri */
+            sourceUrl?: string | null;
+            /** Format: uuid */
+            workId: string;
+        };
         CreateFavoriteGroupRequest: {
             name: string;
+        };
+        CreateGlyphRequest: {
+            /** @enum {string} */
+            authenticityGrade: "A_ORIGINAL" | "B_RUBBING_OR_AUTHORIZED_EDITION" | "C_MODERN_COPY";
+            bboxHeight: number;
+            bboxWidth: number;
+            bboxX: number;
+            bboxY: number;
+            beginnerWeight?: number;
+            canonicalCharacter: string;
+            characterCandidates?: string[];
+            imageQuality?: number;
+            observedCharacter: string;
+            /** Format: uuid */
+            sourceAssetId: string;
+            transcription?: string | null;
+            /** @enum {string|null} */
+            variantType?: "SIMPLIFIED" | "TRADITIONAL" | "HISTORICAL" | "COMPATIBILITY" | null;
         };
         CreatePracticeRequest: {
             /** Format: uuid */
             artworkId: string;
             /** Format: uuid */
             glyphId: string;
+        };
+        CreateRightsRequest: {
+            allowCommercial?: boolean;
+            attributionText?: string | null;
+            licenseName?: string | null;
+            maxPublicWidth?: number | null;
+            notes?: string | null;
+            sourceName: string;
+            /** Format: uri */
+            sourceUrl?: string | null;
+            /** @enum {string} */
+            status: "INTERNAL_TEST_ONLY" | "CLEARED_PUBLIC" | "RESTRICTED";
+            /** Format: date-time */
+            validFrom?: string | null;
+            /** Format: date-time */
+            validUntil?: string | null;
+        };
+        CreateSegmentationJobResult: {
+            created: boolean;
+            /** Format: uuid */
+            jobId: string;
+            /** @enum {string} */
+            status: "PENDING" | "PROCESSING";
+        };
+        CreateSourceUploadRequest: {
+            checksumSha256: string;
+            /** Format: uuid */
+            editionId: string;
+            height: number;
+            /** @enum {string} */
+            mimeType: "image/jpeg" | "image/png" | "image/webp";
+            pageLabel?: string | null;
+            /** Format: uuid */
+            rightsRecordId: string;
+            sizeBytes: number;
+            width: number;
+        };
+        CreateSourceUploadResult: {
+            /** Format: date-time */
+            expiresAt: string;
+            requiredHeaders: {
+                /** @enum {string} */
+                "content-type": "image/jpeg" | "image/png" | "image/webp";
+                "x-amz-meta-sha256": string;
+            };
+            /** Format: uuid */
+            uploadId: string;
+            /** Format: uri */
+            uploadUrl: string;
         };
         CreateUploadRequest: {
             clientRequestId: string;
@@ -1146,6 +1641,14 @@ export interface components {
             /** Format: uri */
             uploadUrl: string;
         };
+        CreateWorkRequest: {
+            /** Format: uuid */
+            calligrapherId: string;
+            description?: string | null;
+            dynasty: string;
+            title: string;
+        };
+        CsvDocument: string;
         DeleteFavoriteGroupResult: {
             deleted: boolean;
             /** Format: uuid */
@@ -1218,6 +1721,20 @@ export interface components {
             url: string;
             width: number;
         };
+        GlyphMutationResult: {
+            /** Format: uuid */
+            glyphId: string;
+            /** @enum {string} */
+            status: "PROCESSING" | "NEEDS_REVIEW" | "APPROVED" | "DRAFT" | "ARCHIVED" | "PUBLISHED";
+        };
+        GlyphReviewRequest: {
+            /** @enum {string} */
+            decision: "APPROVED" | "CHANGES_REQUESTED" | "REJECTED";
+            note?: string | null;
+        };
+        GlyphUnpublishRequest: {
+            reason: string;
+        };
         HealthResult: {
             /** @enum {string} */
             service: "api";
@@ -1234,6 +1751,19 @@ export interface components {
             /** @enum {string} */
             tokenType: "Bearer";
             user: components["schemas"]["SessionUser"];
+        };
+        PhoneVerificationCodeRequest: {
+            phone: string;
+        };
+        PhoneVerificationCodeResult: {
+            /** @enum {boolean} */
+            sent: true;
+        };
+        PhoneVerificationRequest: {
+            /** @description Optional anonymous refresh token proving ownership of an anonymous account to upgrade. */
+            anonymousRefreshToken?: string;
+            code: string;
+            phone: string;
         };
         PracticeAdvice: {
             /** @enum {string} */
@@ -1310,6 +1840,16 @@ export interface components {
             allowModelTraining?: boolean;
             allowPublicSharing?: boolean;
         };
+        PrivateSourceView: {
+            /** Format: date-time */
+            expiresAt: string;
+            height: number;
+            /** @enum {string} */
+            mimeType: "image/jpeg" | "image/png" | "image/webp";
+            /** Format: uri */
+            url: string;
+            width: number;
+        };
         ProductEventRequest: {
             /** Format: uuid */
             eventId: string;
@@ -1380,6 +1920,15 @@ export interface components {
         RefreshTokenRequest: {
             refreshToken: string;
         };
+        RejectSegmentationCandidateRequest: {
+            note: string;
+        };
+        RejectSegmentationCandidateResult: {
+            /** Format: uuid */
+            candidateId: string;
+            /** @enum {string} */
+            status: "REJECTED";
+        };
         ReorderRequest: {
             /** @enum {string} */
             direction: "UP" | "DOWN";
@@ -1391,6 +1940,7 @@ export interface components {
             groupId?: string;
             reordered: boolean;
         };
+        RestoredAdminContent: components["schemas"]["AdminCalligrapher"] | components["schemas"]["AdminWork"] | components["schemas"]["AdminEdition"] | components["schemas"]["AdminRights"] | components["schemas"]["GlyphMutationResult"];
         RevokeSessionResult: {
             revoked: boolean;
         };
@@ -1398,6 +1948,23 @@ export interface components {
             revoked: boolean;
             /** Format: uuid */
             shareId: string;
+        };
+        SegmentationCandidate: {
+            /** Format: date-time */
+            annotatedAt: string | null;
+            annotatedBy: string | null;
+            bboxHeight: number;
+            bboxWidth: number;
+            bboxX: number;
+            bboxY: number;
+            confidence: number;
+            /** Format: uuid */
+            glyphId: string | null;
+            /** Format: uuid */
+            id: string;
+            rejectionNote: string | null;
+            sortOrder: number;
+            status: string;
         };
         SessionUser: {
             /** Format: uuid */
@@ -1474,6 +2041,24 @@ export interface components {
             evidence: string;
             phenomenon: string;
         };
+        SwitchPracticeGlyphRequest: {
+            /** Format: uuid */
+            glyphId: string;
+        };
+        UpdateCalligrapherRequest: {
+            biography?: string | null;
+            dynasty?: string;
+            isActive?: boolean;
+            name?: string;
+        };
+        UpdateEditionRequest: {
+            holdingInstitution?: string | null;
+            isActive?: boolean;
+            name?: string;
+            publication?: string | null;
+            /** Format: uri */
+            sourceUrl?: string | null;
+        };
         UpdateFavoriteGroupRequest: {
             name: string;
         };
@@ -1481,6 +2066,44 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
+        };
+        UpdateGlyphRequest: {
+            /** @enum {string} */
+            authenticityGrade?: "A_ORIGINAL" | "B_RUBBING_OR_AUTHORIZED_EDITION" | "C_MODERN_COPY";
+            bboxHeight?: number;
+            bboxWidth?: number;
+            bboxX?: number;
+            bboxY?: number;
+            beginnerWeight?: number;
+            canonicalCharacter?: string;
+            characterCandidates?: string[];
+            imageQuality?: number;
+            observedCharacter?: string;
+            transcription?: string | null;
+            /** @enum {string|null} */
+            variantType?: "SIMPLIFIED" | "TRADITIONAL" | "HISTORICAL" | "COMPATIBILITY" | null;
+        };
+        UpdateRightsRequest: {
+            allowCommercial?: boolean;
+            attributionText?: string | null;
+            licenseName?: string | null;
+            maxPublicWidth?: number | null;
+            notes?: string | null;
+            sourceName?: string;
+            /** Format: uri */
+            sourceUrl?: string | null;
+            /** @enum {string} */
+            status?: "UNKNOWN" | "INTERNAL_TEST_ONLY" | "CLEARED_PUBLIC" | "RESTRICTED" | "EXPIRED";
+            /** Format: date-time */
+            validFrom?: string | null;
+            /** Format: date-time */
+            validUntil?: string | null;
+        };
+        UpdateWorkRequest: {
+            description?: string | null;
+            dynasty?: string;
+            isActive?: boolean;
+            title?: string;
         };
         UserFeedbackTicket: {
             accurate: boolean | null;
@@ -1502,6 +2125,15 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        WebIdentitySession: {
+            accessToken: string;
+            expiresInSeconds: number;
+            user: components["schemas"]["SessionUser"];
+        };
+        WebPhoneVerificationRequest: {
+            code: string;
+            phone: string;
+        };
         WorkSummary: {
             /** Format: uuid */
             calligrapherId: string;
@@ -1520,18 +2152,24 @@ export type $defs = Record<string, never>;
 export interface operations {
     AdminInsightsController_listAdviceSamples: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                status?: "ALL" | "REVIEWED" | "UNREVIEWED";
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminAdviceSample"][];
+                };
             };
         };
     };
@@ -1539,33 +2177,49 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                attemptId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdviceReviewRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdviceReviewResult"];
+                };
             };
         };
     };
     AdminInsightsController_funnel: {
         parameters: {
-            query?: never;
+            query?: {
+                from?: string;
+                to?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminFunnelReport"];
+                };
             };
         };
     };
@@ -1578,11 +2232,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminCalligrapher"][];
+                };
             };
         };
     };
@@ -1593,13 +2250,20 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCalligrapherRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminCalligrapher"];
+                };
             };
         };
     };
@@ -1607,16 +2271,26 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                calligrapherId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCalligrapherRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminCalligrapher"];
+                };
             };
         };
     };
@@ -1629,11 +2303,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminEdition"][];
+                };
             };
         };
     };
@@ -1644,13 +2321,20 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEditionRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminEdition"];
+                };
             };
         };
     };
@@ -1658,16 +2342,26 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                editionId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEditionRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminEdition"];
+                };
             };
         };
     };
@@ -1680,11 +2374,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminGlyph"][];
+                };
             };
         };
     };
@@ -1695,13 +2392,20 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGlyphRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["GlyphMutationResult"];
+                };
             };
         };
     };
@@ -1709,16 +2413,26 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                glyphId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateGlyphRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["GlyphMutationResult"];
+                };
             };
         };
     };
@@ -1726,16 +2440,22 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                glyphId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["GlyphMutationResult"];
+                };
             };
         };
     };
@@ -1743,16 +2463,26 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                glyphId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GlyphReviewRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["GlyphMutationResult"];
+                };
             };
         };
     };
@@ -1760,33 +2490,50 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                glyphId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GlyphUnpublishRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["GlyphMutationResult"];
+                };
             };
         };
     };
     ContentAdminController_listContentHistory: {
         parameters: {
-            query?: never;
+            query: {
+                /** Format: uuid */
+                entityId: string;
+                entityType: "Calligrapher" | "Work" | "WorkEdition" | "RightsRecord" | "Glyph";
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminContentHistoryEntry"][];
+                };
             };
         };
     };
@@ -1794,16 +2541,22 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                auditId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["RestoredAdminContent"];
+                };
             };
         };
     };
@@ -1816,11 +2569,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminContentImportBatch"][];
+                };
             };
         };
     };
@@ -1828,16 +2584,22 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                batchId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ContentImportCommitResult"];
+                };
             };
         };
     };
@@ -1848,13 +2610,20 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContentImportPreviewRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminContentImportBatch"];
+                };
             };
         };
     };
@@ -1867,11 +2636,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "text/csv": components["schemas"]["CsvDocument"];
+                };
             };
         };
     };
@@ -1884,11 +2656,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminRights"][];
+                };
             };
         };
     };
@@ -1899,13 +2674,20 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRightsRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminRights"];
+                };
             };
         };
     };
@@ -1913,16 +2695,26 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                rightsId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRightsRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminRights"];
+                };
             };
         };
     };
@@ -1930,16 +2722,26 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                candidateId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptSegmentationCandidateRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["GlyphMutationResult"];
+                };
             };
         };
     };
@@ -1947,16 +2749,26 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                candidateId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectSegmentationCandidateRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["RejectSegmentationCandidateResult"];
+                };
             };
         };
     };
@@ -1969,11 +2781,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminSegmentationJob"][];
+                };
             };
         };
     };
@@ -1986,11 +2801,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminSourceAsset"][];
+                };
             };
         };
     };
@@ -1998,16 +2816,22 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                sourceAssetId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CreateSegmentationJobResult"];
+                };
             };
         };
     };
@@ -2015,16 +2839,22 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                sourceAssetId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["PrivateSourceView"];
+                };
             };
         };
     };
@@ -2035,13 +2865,20 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSourceUploadRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CreateSourceUploadResult"];
+                };
             };
         };
     };
@@ -2049,16 +2886,22 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                uploadId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CompleteSourceUploadResult"];
+                };
             };
         };
     };
@@ -2071,11 +2914,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminWork"][];
+                };
             };
         };
     };
@@ -2086,13 +2932,20 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateWorkRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminWork"];
+                };
             };
         };
     };
@@ -2100,33 +2953,49 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                workId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateWorkRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminWork"];
+                };
             };
         };
     };
     AdminFeedbackController_list: {
         parameters: {
-            query?: never;
+            query?: {
+                kind?: "STRUCTURE_ADVICE" | "RECOGNITION_ERROR" | "QUALITY_RESULT" | "CONTENT_ERROR" | "PRODUCT";
+                status?: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "DISMISSED";
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminFeedbackTicket"][];
+                };
             };
         };
     };
@@ -2134,16 +3003,26 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** Format: uuid */
+                feedbackId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminFeedbackUpdateRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminFeedbackTicket"];
+                };
             };
         };
     };
@@ -2154,13 +3033,20 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminSessionRequest"];
+            };
+        };
         responses: {
+            /** @description 管理后台操作成功。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminSession"];
+                };
             };
         };
     };
@@ -2672,6 +3558,138 @@ export interface operations {
             };
         };
     };
+    IdentityController_sendSms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhoneVerificationCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description 验证码发送请求已处理。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhoneVerificationCodeResult"];
+                };
+            };
+        };
+    };
+    IdentityController_verifySms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhoneVerificationRequest"];
+            };
+        };
+        responses: {
+            /** @description 手机号会话已签发。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentitySession"];
+                };
+            };
+        };
+    };
+    WebIdentityController_createAnonymousWebSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Web 匿名会话已签发并设置 Refresh Cookie。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebIdentitySession"];
+                };
+            };
+        };
+    };
+    WebIdentityController_refreshWebSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Web 会话已轮换并更新 Refresh Cookie。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebIdentitySession"];
+                };
+            };
+        };
+    };
+    WebIdentityController_revokeWebSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Web 会话已撤销并清除 Refresh Cookie。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevokeSessionResult"];
+                };
+            };
+        };
+    };
+    WebIdentityController_verifySmsWebSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebPhoneVerificationRequest"];
+            };
+        };
+        responses: {
+            /** @description Web 手机号会话已签发并设置 Refresh Cookie。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebIdentitySession"];
+                };
+            };
+        };
+    };
     PracticeController_listPractices: {
         parameters: {
             query?: never;
@@ -2755,6 +3773,32 @@ export interface operations {
         responses: {
             /** @description 再次练习已加入会话。 */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeView"];
+                };
+            };
+        };
+    };
+    PracticeController_switchGlyph: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SwitchPracticeGlyphRequest"];
+            };
+        };
+        responses: {
+            /** @description 参考范字已切换。 */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

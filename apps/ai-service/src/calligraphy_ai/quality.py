@@ -8,7 +8,8 @@ import numpy as np
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, Field
 
-Image.MAX_IMAGE_PIXELS = 40_000_000
+MAX_IMAGE_PIXELS = 40_000_000
+Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
 
 MIN_DIMENSION = 256
 MIN_CONTRAST = 22.0
@@ -59,7 +60,7 @@ def _decode_grayscale(image_bytes: bytes) -> np.ndarray:
     try:
         with Image.open(BytesIO(image_bytes)) as image:
             image.load()
-            if image.width * image.height > Image.MAX_IMAGE_PIXELS:
+            if image.width * image.height > MAX_IMAGE_PIXELS:
                 raise InvalidImageError("图片像素尺寸过大。")
             grayscale = np.asarray(image.convert("L"), dtype=np.uint8)
     except (Image.DecompressionBombError, Image.DecompressionBombWarning) as error:
@@ -84,6 +85,11 @@ def _edge_ink_ratio(ink_mask: np.ndarray) -> float:
         ]
     )
     return float(np.mean(border))
+
+
+def validate_image_bytes(image_bytes: bytes) -> None:
+    """Decode an uploaded raster and enforce the shared image safety limits."""
+    _decode_grayscale(image_bytes)
 
 
 def analyze_image_bytes(image_bytes: bytes) -> ImageQualityResult:

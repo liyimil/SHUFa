@@ -1,5 +1,10 @@
 import type { OpenAPIObject } from "@nestjs/swagger";
 
+import {
+  adminContractSchemas,
+  adminOperationContracts,
+} from "./admin-openapi-contract.js";
+
 type SchemaObject = NonNullable<
   NonNullable<OpenAPIObject["components"]>["schemas"]
 >[string];
@@ -371,6 +376,40 @@ const schemas: Record<string, SchemaObject> = {
     ],
     type: "object",
   },
+  PhoneVerificationCodeRequest: {
+    properties: {
+      phone: { pattern: "^1[3-9]\\d{9}$", type: "string" },
+    },
+    required: ["phone"],
+    type: "object",
+  },
+  PhoneVerificationCodeResult: {
+    properties: { sent: { enum: [true], type: "boolean" } },
+    required: ["sent"],
+    type: "object",
+  },
+  PhoneVerificationRequest: {
+    properties: {
+      anonymousRefreshToken: {
+        description:
+          "Optional anonymous refresh token proving ownership of an anonymous account to upgrade.",
+        pattern: "^[A-Za-z0-9_-]{43}$",
+        type: "string",
+      },
+      code: { pattern: "^\\d{6}$", type: "string" },
+      phone: { pattern: "^1[3-9]\\d{9}$", type: "string" },
+    },
+    required: ["code", "phone"],
+    type: "object",
+  },
+  WebPhoneVerificationRequest: {
+    properties: {
+      code: { pattern: "^\\d{6}$", type: "string" },
+      phone: { pattern: "^1[3-9]\\d{9}$", type: "string" },
+    },
+    required: ["code", "phone"],
+    type: "object",
+  },
   PublishedGlyph: {
     properties: {
       authenticityGrade: {
@@ -671,6 +710,20 @@ const schemas: Record<string, SchemaObject> = {
     required: ["revoked", "shareId"],
     type: "object",
   },
+  SwitchPracticeGlyphRequest: {
+    properties: { glyphId: { format: "uuid", type: "string" } },
+    required: ["glyphId"],
+    type: "object",
+  },
+  WebIdentitySession: {
+    properties: {
+      accessToken: { type: "string" },
+      expiresInSeconds: { minimum: 1, type: "integer" },
+      user: { $ref: "#/components/schemas/SessionUser" },
+    },
+    required: ["accessToken", "expiresInSeconds", "user"],
+    type: "object",
+  },
   ShareResult: {
     properties: {
       expiresAt: { format: "date-time", type: "string" },
@@ -960,11 +1013,45 @@ function setPathParameter(
   }
 }
 
+function setOperationParameter(
+  operation: JsonOperation,
+  parameter: {
+    format?: string;
+    in: "path" | "query";
+    name: string;
+    required?: boolean;
+    schema?: Record<string, unknown>;
+  },
+): void {
+  const schema = parameter.schema ?? {
+    ...(parameter.format ? { format: parameter.format } : {}),
+    type: "string",
+  };
+  let matched = false;
+  operation.parameters = (operation.parameters ?? []).map((current) =>
+    current &&
+    typeof current === "object" &&
+    "name" in current &&
+    current.name === parameter.name &&
+    "in" in current &&
+    current.in === parameter.in
+      ? ((matched = true), { ...current, ...parameter, schema })
+      : current,
+  );
+  if (!matched) operation.parameters.push({ ...parameter, schema });
+}
+
 export const typedClientOperationIds = [
   "IdentityController_createAnonymousSession",
   "IdentityController_createRefreshableSession",
   "IdentityController_refresh",
   "IdentityController_revoke",
+  "IdentityController_sendSms",
+  "IdentityController_verifySms",
+  "WebIdentityController_createAnonymousWebSession",
+  "WebIdentityController_refreshWebSession",
+  "WebIdentityController_revokeWebSession",
+  "WebIdentityController_verifySmsWebSession",
   "CatalogController_findGlyphs",
   "GlyphController_getDetail",
   "UploadController_createUpload",
@@ -980,6 +1067,7 @@ export const typedClientOperationIds = [
   "PracticeController_listPractices",
   "PracticeController_getPractice",
   "PracticeController_addAttempt",
+  "PracticeController_switchGlyph",
   "PracticeController_createShare",
   "PracticeController_revokeShare",
   "PracticeController_createFavoriteGroup",
@@ -996,6 +1084,7 @@ export const typedClientOperationIds = [
   "FeedbackController_list",
   "PublicShareController_getShare",
   "PublicShareController_getShareSummary",
+  ...adminOperationContracts.map(({ operationId }) => operationId),
 ] as const;
 
 export function enhanceOpenApiDocument(document: OpenAPIObject): OpenAPIObject {
@@ -1003,6 +1092,7 @@ export function enhanceOpenApiDocument(document: OpenAPIObject): OpenAPIObject {
   document.components.schemas = {
     ...(document.components.schemas ?? {}),
     ...schemas,
+    ...adminContractSchemas,
   };
 
   for (const id of [
@@ -1027,6 +1117,48 @@ export function enhanceOpenApiDocument(document: OpenAPIObject): OpenAPIObject {
   const revoke = findOperation(document, "IdentityController_revoke");
   setJsonRequest(revoke, "RefreshTokenRequest");
   setJsonResponse(revoke, 201, "RevokeSessionResult", "撤销请求已处理。");
+
+  const sendSms = findOperation(document, "IdentityController_sendSms");
+  setJsonRequest(sendSms, "PhoneVerificationCodeRequest");
+  setJsonResponse(
+    sendSms,
+    201,
+    "PhoneVerificationCodeResult",
+    "验证码发送请求已处理。",
+  );
+  const verifySms = findOperation(document, "IdentityController_verifySms");
+  setJsonRequest(verifySms, "PhoneVerificationRequest");
+  setJsonResponse(verifySms, 201, "IdentitySession", "手机号会话已签发。");
+
+  setJsonResponse(
+    findOperation(document, "WebIdentityController_createAnonymousWebSession"),
+    201,
+    "WebIdentitySession",
+    "Web 匿名会话已签发并设置 Refresh Cookie。",
+  );
+  setJsonResponse(
+    findOperation(document, "WebIdentityController_refreshWebSession"),
+    201,
+    "WebIdentitySession",
+    "Web 会话已轮换并更新 Refresh Cookie。",
+  );
+  setJsonResponse(
+    findOperation(document, "WebIdentityController_revokeWebSession"),
+    201,
+    "RevokeSessionResult",
+    "Web 会话已撤销并清除 Refresh Cookie。",
+  );
+  const verifySmsWeb = findOperation(
+    document,
+    "WebIdentityController_verifySmsWebSession",
+  );
+  setJsonRequest(verifySmsWeb, "WebPhoneVerificationRequest");
+  setJsonResponse(
+    verifySmsWeb,
+    201,
+    "WebIdentitySession",
+    "Web 手机号会话已签发并设置 Refresh Cookie。",
+  );
 
   const catalog = findOperation(document, "CatalogController_findGlyphs");
   setPathParameter(catalog, "character");
@@ -1170,6 +1302,12 @@ export function enhanceOpenApiDocument(document: OpenAPIObject): OpenAPIObject {
   );
   setJsonRequest(addAttempt, "PracticeAttemptRequest");
   setJsonResponse(addAttempt, 201, "PracticeView", "再次练习已加入会话。");
+  const switchGlyph = authenticatedWithUuid(
+    "PracticeController_switchGlyph",
+    "sessionId",
+  );
+  setJsonRequest(switchGlyph, "SwitchPracticeGlyphRequest");
+  setJsonResponse(switchGlyph, 200, "PracticeView", "参考范字已切换。");
   setJsonResponse(
     authenticatedWithUuid("PracticeController_createShare", "sessionId"),
     201,
@@ -1297,6 +1435,35 @@ export function enhanceOpenApiDocument(document: OpenAPIObject): OpenAPIObject {
       type: "string",
     });
     setJsonResponse(operation, 200, schemaName, description);
+  }
+
+  for (const contract of adminOperationContracts) {
+    const operation = findOperation(document, contract.operationId);
+    if (contract.secured) operation.security = [{ bearer: [] }];
+    for (const parameter of contract.parameters ?? []) {
+      setOperationParameter(operation, parameter);
+    }
+    if (contract.requestSchema) {
+      setJsonRequest(operation, contract.requestSchema);
+    }
+    operation.responses ??= {};
+    operation.responses[String(contract.responseStatus)] = {
+      content: {
+        [contract.contentType ?? "application/json"]: {
+          schema: contract.arrayResponse
+            ? {
+                items: {
+                  $ref: `#/components/schemas/${contract.responseSchema}`,
+                },
+                type: "array",
+              }
+            : {
+                $ref: `#/components/schemas/${contract.responseSchema}`,
+              },
+        },
+      },
+      description: "管理后台操作成功。",
+    };
   }
   for (const operationId of typedClientOperationIds) {
     findOperation(document, operationId)["x-client-contract"] = true;

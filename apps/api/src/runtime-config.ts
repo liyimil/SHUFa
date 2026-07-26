@@ -1,9 +1,12 @@
 const productionRequiredVariables = [
   "ADMIN_ACCOUNTS_JSON",
+  "CORS_ORIGINS",
   "DATABASE_URL",
   "INTERNAL_WORKER_TOKEN",
   "JWT_SECRET",
+  "PHONE_HASH_PEPPER",
   "PUBLIC_WEB_URL",
+  "PUBLIC_ASSET_BASE_URL",
   "REDIS_URL",
   "S3_BUCKET_PRIVATE",
   "S3_BUCKET_PUBLIC",
@@ -29,6 +32,16 @@ export function validateRuntimeConfiguration(
       );
     }
   }
+
+  for (const name of ["RATE_LIMIT_TTL_MS", "RATE_LIMIT_MAX"] as const) {
+    if (environment[name] !== undefined) {
+      const value = Number(environment[name]);
+      if (!Number.isFinite(value) || value <= 0 || !Number.isInteger(value)) {
+        throw new Error(`${name} must be a positive integer.`);
+      }
+    }
+  }
+
   if (environment.NODE_ENV !== "production") return;
 
   const missing = productionRequiredVariables.filter(
@@ -41,6 +54,7 @@ export function validateRuntimeConfiguration(
   }
 
   for (const name of [
+    "PUBLIC_ASSET_BASE_URL",
     "PUBLIC_WEB_URL",
     "WEB_CACHE_INVALIDATION_URL",
   ] as const) {
@@ -50,8 +64,23 @@ export function validateRuntimeConfiguration(
     }
   }
 
+  for (const origin of environment.CORS_ORIGINS!.split(",")) {
+    const value = origin.trim();
+    const parsed = new URL(value);
+    if (
+      !value ||
+      !["http:", "https:"].includes(parsed.protocol) ||
+      parsed.origin !== value
+    ) {
+      throw new Error(
+        "CORS_ORIGINS must contain only comma-separated HTTP(S) origins.",
+      );
+    }
+  }
+
   for (const name of [
     "JWT_SECRET",
+    "PHONE_HASH_PEPPER",
     "INTERNAL_WORKER_TOKEN",
     "WEB_CACHE_INVALIDATION_TOKEN",
   ] as const) {

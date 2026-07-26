@@ -9,7 +9,9 @@ import {
   IdentityService,
   REFRESH_TOKEN_TTL_SECONDS,
 } from "../src/identity/identity.service.js";
+import type { SmsProvider } from "../src/identity/sms.provider.js";
 import type { AccessTokenPayload } from "../src/identity/identity.types.js";
+import { VerificationCodeStore } from "../src/identity/verification-code.store.js";
 
 const userId = "3fe537fd-6601-43f0-a31d-781bd5bde945";
 
@@ -26,6 +28,16 @@ class InMemoryIdentityRepository implements IdentityRepository {
     return Promise.resolve({ userId });
   }
 
+  createRegisteredUserWithSession(input: {
+    expiresAt: Date;
+    phoneHash: string;
+    refreshTokenHash: string;
+  }) {
+    this.currentHash = input.refreshTokenHash;
+    this.revoked = false;
+    return Promise.resolve({ userId });
+  }
+
   createSessionForUser(input: {
     expiresAt: Date;
     refreshTokenHash: string;
@@ -34,6 +46,10 @@ class InMemoryIdentityRepository implements IdentityRepository {
     this.currentHash = input.refreshTokenHash;
     this.revoked = false;
     return Promise.resolve();
+  }
+
+  findUserByPhoneHash() {
+    return Promise.resolve(null);
   }
 
   isActiveUser() {
@@ -57,7 +73,16 @@ class InMemoryIdentityRepository implements IdentityRepository {
     this.currentHash = input.newRefreshTokenHash;
     return Promise.resolve({ kind: "anonymous" as const, userId });
   }
+
+  upgradeAnonymousWithSession() {
+    return Promise.resolve(null);
+  }
 }
+
+const mockSmsProvider: SmsProvider = {
+  sendVerificationCode: () =>
+    Promise.resolve({ messageId: "test", success: true }),
+};
 
 function createService(repository: IdentityRepository): {
   jwtService: JwtService;
@@ -66,7 +91,16 @@ function createService(repository: IdentityRepository): {
   const jwtService = new JwtService({
     secret: "test-secret-at-least-32-characters-long",
   });
-  return { jwtService, service: new IdentityService(repository, jwtService) };
+  const codeStore = new VerificationCodeStore();
+  return {
+    jwtService,
+    service: new IdentityService(
+      repository,
+      jwtService,
+      mockSmsProvider,
+      codeStore,
+    ),
+  };
 }
 
 describe("IdentityService", () => {

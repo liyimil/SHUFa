@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { ApiClientError } from "@calligraphy/api-contract";
+
 import {
   adminApiBaseUrl,
   createAdminContent,
@@ -42,6 +44,27 @@ describe("admin API client", () => {
     );
     assert.equal(requestedUrl, "https://api.example/v1/admin/session");
     assert.equal(result.accessToken, "token");
+  });
+
+  it("adds a safe request id to staff-facing API errors", async () => {
+    await assert.rejects(
+      createAdminSession(
+        "https://api.example/v1",
+        "editor@example.com",
+        "wrong-password",
+        async () =>
+          Response.json(
+            { code: "INVALID_ADMIN_CREDENTIALS", message: "登录失败。" },
+            { headers: { "X-Request-Id": "admin-request-456" }, status: 401 },
+          ),
+      ),
+      (error: unknown) => {
+        assert.ok(error instanceof ApiClientError);
+        assert.equal(error.requestId, "admin-request-456");
+        assert.match(error.message, /追踪 ID：admin-request-456/);
+        return true;
+      },
+    );
   });
 
   it("patches a glyph correction through the authenticated boundary", async () => {

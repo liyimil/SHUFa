@@ -8,13 +8,16 @@
 4. 内容、版权、隐私、未成年人规则和结构建议阈值分别由责任人签字。
 5. 镜像以 Git 提交 SHA 标记；保留上一个已验证镜像及对应数据库迁移记录。
 
+本地五类 Worker 联调可在仓库根目录执行 `pnpm e2e:worker:local`。该命令构建 API/Worker，启动并等待 Docker 基础设施、执行迁移，临时启动 API/Worker/AI，使用脚本生成的无版权几何夹具执行 19 项 E2E，并在成功或失败后清理临时应用进程；若 3001 或 8000 已被占用会直接拒绝运行。
+
 ## 生产配置
 
 API 在 `NODE_ENV=production` 时会校验必需配置并拒绝示例 Secret。至少通过 Secret 管理服务注入：
 
 - `DATABASE_URL`、`REDIS_URL`
-- `JWT_SECRET`、`INTERNAL_WORKER_TOKEN`、`ADMIN_ACCOUNTS_JSON`
-- `PUBLIC_WEB_URL`；必须是公开 Web 的 HTTP/HTTPS Origin，用于生成可访问的分享链接与结果卡地址
+- `JWT_SECRET`、`PHONE_HASH_PEPPER`、`INTERNAL_WORKER_TOKEN`、`ADMIN_ACCOUNTS_JSON`；Pepper 必须与签名密钥分离
+- `PUBLIC_WEB_URL`、`PUBLIC_ASSET_BASE_URL`；必须是公开 Web/资源的 HTTP/HTTPS Origin
+- `CORS_ORIGINS`；只允许逗号分隔的精确 HTTP/HTTPS Origin，不允许路径
 - `WEB_CACHE_INVALIDATION_URL`、`WEB_CACHE_INVALIDATION_TOKEN`；URL 指向公开 Web 的 `/api/internal/catalog-cache`，Token 至少 32 位且仅供 API 与 Web 使用
 - `S3_REGION`、`S3_BUCKET_PRIVATE`、`S3_BUCKET_PUBLIC`
 - 云厂商使用静态密钥时的 S3 凭证；支持工作负载身份时不落盘静态密钥
@@ -73,7 +76,7 @@ Web 和后台的 `NEXT_PUBLIC_API_BASE_URL` 是构建参数。生产默认不公
 
 ## 日志与告警
 
-API 返回 `X-Request-Id`，并输出不记录查询串、请求体、令牌、签名 URL 或图片内容的完成日志；公开分享路径中的持有者令牌固定显示为 `:shareToken`。Worker 输出任务 ID 和领域对象 ID。API 与 Worker 在记录异常、持久化失败原因或发送终态失败回调前，统一脱敏 URL、Bearer/JWT、常见凭据、用户对象键、邮箱、手机号和长不透明令牌，并限制诊断文本长度。脱敏器不能作为记录请求头、请求体或查询串的理由。
+API 返回 `X-Request-Id`，并输出不记录查询串、请求体、令牌、签名 URL 或图片内容的完成日志；公开分享路径中的持有者令牌固定显示为 `:shareToken`。五类 Worker 任务以稳定领域 UUID 作为 `X-Request-Id`，在 Worker 完成/失败日志、AI 请求与 API 回调日志中保持一致。AI 验证该头并只记录方法、固定路径、状态、耗时和关联 ID；非法值替换为随机 UUID。API 与 Worker 在记录异常、持久化失败原因或发送终态失败回调前，统一脱敏 URL、Bearer/JWT、常见凭据、用户对象键、邮箱、手机号和长不透明令牌，并限制诊断文本长度。脱敏器不能作为记录请求头、请求体或查询串的理由。
 
 生产日志平台需要按 request/job/artwork/analysis ID 建立检索，并对以下情况告警：
 

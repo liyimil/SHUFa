@@ -13,6 +13,8 @@ API 和 Worker 需要保留足以定位异步任务、对象清理和分析失�
 - 所有来自异常对象的文本在写入日志、失败状态或内部失败回调前统一脱敏并限制长度；覆盖 URL、Bearer/JWT、常见凭据赋值、用户对象键、邮箱、手机号和长不透明令牌。
 - API 请求日志先移除查询串和片段，再把公开分享路径中的持有者令牌替换为 `:shareToken`。
 - 保留 request、job、artwork、analysis 等内部关联 ID，便于排障；公开分享令牌不属于可记录的关联 ID。
+- 五类异步任务使用自身的 analysis、attempt、segmentation、glyph 或 deletion UUID 作为 `X-Request-Id`；Worker 发往 AI 和 API 回调时必须携带，三端结构化日志使用同一 `requestId`。
+- AI 仅记录方法、无查询串路径、状态、耗时和经过格式/长度校验的关联 ID；不可信或非法请求 ID 替换为随机 UUID。
 - 脱敏器不是扩大采集范围的许可。请求体、请求头、查询串、图片内容、签名 URL 和原始对象键仍不得进入应用日志。
 - 共享包必须进入 API 与 Worker 的生产构建上下文；攻击性输入、服务持久化边界和 Worker 失败回调分别由自动测试覆盖。
 

@@ -49,12 +49,66 @@ export class PrismaIdentityRepository implements IdentityRepository {
     return { userId: user.id };
   }
 
+  async createRegisteredUserWithSession(input: {
+    expiresAt: Date;
+    phoneHash: string;
+    refreshTokenHash: string;
+  }): Promise<{ userId: string }> {
+    const user = await this.prisma.user.create({
+      data: {
+        consentAudits: {
+          createMany: {
+            data: [
+              {
+                dimension: "STORAGE",
+                enabled: true,
+                policyVersion: "privacy-v1",
+              },
+              {
+                dimension: "PUBLIC_SHARING",
+                enabled: false,
+                policyVersion: "privacy-v1",
+              },
+              {
+                dimension: "MODEL_TRAINING",
+                enabled: false,
+                policyVersion: "privacy-v1",
+              },
+            ],
+          },
+        },
+        phoneHash: input.phoneHash,
+        privacyPreference: {
+          create: { policyVersion: "privacy-v1" },
+        },
+        sessions: {
+          create: {
+            expiresAt: input.expiresAt,
+            refreshTokenHash: input.refreshTokenHash,
+          },
+        },
+      },
+      select: { id: true },
+    });
+    return { userId: user.id };
+  }
+
   async createSessionForUser(input: {
     expiresAt: Date;
     refreshTokenHash: string;
     userId: string;
   }): Promise<void> {
     await this.prisma.userSession.create({ data: input });
+  }
+
+  async findUserByPhoneHash(
+    phoneHash: string,
+  ): Promise<{ id: string; status: string } | null> {
+    const user = await this.prisma.user.findFirst({
+      where: { phoneHash },
+      select: { id: true, status: true },
+    });
+    return user;
   }
 
   async isActiveUser(userId: string): Promise<boolean> {
@@ -103,6 +157,50 @@ export class PrismaIdentityRepository implements IdentityRepository {
         kind: session.user.phoneHash ? "registered" : "anonymous",
         userId: session.user.id,
       };
+    });
+  }
+
+  async upgradeAnonymousWithSession(input: {
+    currentRefreshTokenHash: string;
+    newExpiresAt: Date;
+    newRefreshTokenHash: string;
+    now: Date;
+    phoneHash: string;
+  }): Promise<{ userId: string } | null> {
+    return this.prisma.$transaction(async (transaction) => {
+      const session = await transaction.userSession.findFirst({
+        where: {
+          expiresAt: { gt: input.now },
+          refreshTokenHash: input.currentRefreshTokenHash,
+          revokedAt: null,
+          user: { phoneHash: null, status: "ACTIVE" },
+        },
+        select: { userId: true },
+      });
+      if (!session) return null;
+
+      const upgraded = await transaction.user.updateMany({
+        data: { phoneHash: input.phoneHash },
+        where: {
+          id: session.userId,
+          phoneHash: null,
+          status: "ACTIVE",
+        },
+      });
+      if (upgraded.count !== 1) return null;
+
+      await transaction.userSession.updateMany({
+        data: { revokedAt: input.now },
+        where: { userId: session.userId, revokedAt: null },
+      });
+      await transaction.userSession.create({
+        data: {
+          expiresAt: input.newExpiresAt,
+          refreshTokenHash: input.newRefreshTokenHash,
+          userId: session.userId,
+        },
+      });
+      return { userId: session.userId };
     });
   }
 
